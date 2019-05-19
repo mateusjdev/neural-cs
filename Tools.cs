@@ -26,10 +26,11 @@ namespace NeuralNetCS
         {
             Matrix m = new Matrix(2, 1, 2, 1, 0.05);
 
+            m.AddData(new List<double> { 1, 1 }, new List<double> { tt });
             m.AddData(new List<double> { 0,0 },new List<double> { ff });
             m.AddData(new List<double> { 0,1 },new List<double> { ft });
             m.AddData(new List<double> { 1,0 },new List<double> { tf });
-            m.AddData(new List<double> { 1,1 },new List<double> { tt });
+//             m.AddData(new List<double> { 1,1 },new List<double> { tt });
 
             return m;
         }
@@ -56,15 +57,26 @@ namespace NeuralNetCS
             return 0;
         }
 
+        /*
         public void LogicCalc(bool logic = false)
         {
             List<double> fInput = new List<double>();
             MatrixData data = m.GetAllData();
             for (int x = 0; x < data.nInput; ++x)
             {
-                Console.WriteLine(msgText.TX1c02 + x + "):");
-                double y = Console.Read();
-                fInput.Add(y);
+                while (true)
+                {
+                    Console.WriteLine(msgText.TX1c02 + x + "):");
+                    double y;
+                    if (!Double.TryParse(Console.ReadLine(), out y))
+                    {
+                        Console.WriteLine("# ERR # Tipo de entradas devem ser 1 ou 0");
+                    }
+                    else
+                    {
+                        fInput.Add(y);
+                    }
+                }
             }
             List<double> result = m.Calculate(fInput);
             Console.WriteLine(msgText.TX1c03);
@@ -83,6 +95,7 @@ namespace NeuralNetCS
                 }
             }
         }
+        */
 
         public void PrintResult()
         {
@@ -102,23 +115,23 @@ namespace NeuralNetCS
                 Console.WriteLine();
             }
             Console.WriteLine(msgText.TX1c12);
-            for (int x = 0; x < tmp.Data.Count(); ++x)
+            for (int x = 0; x < tmp.InData.GetLength(0); ++x)
             {
                 for (int y = 0; y < tmp.nOutput; ++y)
-                    Console.Write(msgText.TX1c16 + x + "):\t" + Math.Round(tmp.Data[x][1][y], 6) + "\t");
+                    Console.Write(msgText.TX1c16 + x + "):\t" + Math.Round(tmp.OutData[x].First()[y], 6) + "\t");
                 Console.WriteLine();
                 for (int y = 0; y < tmp.nOutput; ++y)
-                    Console.Write(msgText.TX1c17 + x + "):\t" + Math.Round(tmp.Data[x][1][y] - tmp.Data[x].Last()[y], 6) + "\t");
+                    Console.Write(msgText.TX1c17 + x + "):\t" + Math.Round(tmp.OutData[x].First()[y] - tmp.OutData[x].Last()[y], 6) + "\t");
                 Console.WriteLine();
             }
             Console.WriteLine(msgText.TX1c13);
             double tot = 0.0;
             int n = 0;
-            for (int x = 0; x < tmp.Data.Count(); ++x)
+            for (int x = 0; x < tmp.InData.GetLength(0); ++x)
             {
                 for (int y = 0; y < tmp.nOutput; ++y)
                 {
-                    tot += Math.Abs(tmp.Data[x][1][y] - tmp.Data[x].Last()[y]);
+                    tot += Math.Abs(tmp.OutData[x].First()[y] - tmp.OutData[x].Last()[y]);
                     ++n;
                 }
             }

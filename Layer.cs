@@ -24,9 +24,9 @@ namespace NeuralNetCS
             return mNeuron[at].Sigma;
         }
 
-        public int Count()
+        public int GetCount()
         {
-            return mNeuron.Count();
+            return mNeuron.GetLength(0);
         }
 
         public void SetValue(int at, double value)
@@ -41,20 +41,21 @@ namespace NeuralNetCS
         public List<double> GetOutput()
         {
             List<double> vec = new List<double>();
-            foreach (Neuron neuron in mNeuron)
-                vec.Add(neuron.Sigmo);
+            for (int x = 0;x < mNeuron.Length ;++x)
+                vec.Add(mNeuron[x].Sigmo);
             return vec;
         }
 
-        protected List<Neuron> mNeuron = new List<Neuron>();
+        protected Neuron[] mNeuron;
     }
 
     class ILayer : Layer
     {
         public ILayer(int nNeurons)
         {
+            mNeuron = new Neuron[nNeurons];
             for (int x = 0; x < nNeurons; ++x)
-                mNeuron.Add(new Neuron());
+                mNeuron[x] = new Neuron();
         }
 
         public override double GetSigmo(int at)
@@ -67,8 +68,9 @@ namespace NeuralNetCS
     {
         public HLayer(int nNeurons)
         {
+            mNeuron = new Neuron[nNeurons];
             for (int x = 0; x < nNeurons; ++x)
-                mNeuron.Add(new Neuron());
+                mNeuron[x] = new Neuron();
         }
     }
 }
