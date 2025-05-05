@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-
-namespace NeuralNetCS
+﻿namespace NeuralNetCS
 {
     struct Frases
     {
@@ -36,10 +29,9 @@ namespace NeuralNetCS
         //
         public string ERR1c00, ERR1c01;
     }
-    
+
     class Program
     {
-
         static void Main(string[] args)
         {
             Tools tools = new Tools(Tools.UseLogicGate(0, 1, 1, 0));

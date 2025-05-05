@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NeuralNetCS
 {
@@ -48,6 +46,9 @@ namespace NeuralNetCS
 
         public Matrix() { }
 
+        // TODO: Reimplementar construtor com MatrixData
+        // public Matrix(MatrixData mMatrix){}
+
         public Matrix(int nInput, int nHLayers, int nNperHLayers, int nOutput, double rate = 0.1)
         {
             mLayer = new Layer[nHLayers + 2];
@@ -61,8 +62,6 @@ namespace NeuralNetCS
             mRate = rate;
             GenP();
         }
-
-        //public Matrix(MatrixData mMatrix){}
 
         public List<double> Calculate(double[] input)
         {
@@ -153,13 +152,14 @@ namespace NeuralNetCS
                         double[][][] tmpOut = mDataOut;
 
                         mDataOut = new double[tmpOut.GetLength(0) + 1][][];
-                        for(int x = 0;x < tmpOut.GetLength(0) + 1 ;++x)
+                        for (int x = 0; x < tmpOut.GetLength(0) + 1; ++x)
                             mDataOut[x] = new double[2][];
-                        for (int x = 0; x < tmpOut.GetLength(0) ;++x) {
+                        for (int x = 0; x < tmpOut.GetLength(0); ++x)
+                        {
                             mDataOut[x][0] = new double[nOutput];
                             mDataOut[x][1] = new double[nOutput];
                         }
-                        for(int x = 0; x < tmpOut.GetLength(0);++x)
+                        for (int x = 0; x < tmpOut.GetLength(0); ++x)
                             for (int y = 0; y < nOutput; ++y)
                             {
                                 mDataOut[x][0][y] = mOutput[y];

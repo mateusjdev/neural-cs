@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace NeuralNetCS
 {
@@ -41,7 +37,7 @@ namespace NeuralNetCS
         public List<double> GetOutput()
         {
             List<double> vec = new List<double>();
-            for (int x = 0;x < mNeuron.Length ;++x)
+            for (int x = 0; x < mNeuron.Length; ++x)
                 vec.Add(mNeuron[x].Sigmo);
             return vec;
         }

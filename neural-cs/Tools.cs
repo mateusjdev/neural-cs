@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Diagnostics;
-using System.Text;
-using System.Threading.Tasks;
+using System.Linq;
 
 namespace NeuralNetCS
 {
@@ -27,10 +25,10 @@ namespace NeuralNetCS
             Matrix m = new Matrix(2, 1, 2, 1, 0.05);
 
             m.AddData(new List<double> { 1, 1 }, new List<double> { tt });
-            m.AddData(new List<double> { 0,0 },new List<double> { ff });
-            m.AddData(new List<double> { 0,1 },new List<double> { ft });
-            m.AddData(new List<double> { 1,0 },new List<double> { tf });
-//             m.AddData(new List<double> { 1,1 },new List<double> { tt });
+            m.AddData(new List<double> { 0, 0 }, new List<double> { ff });
+            m.AddData(new List<double> { 0, 1 }, new List<double> { ft });
+            m.AddData(new List<double> { 1, 0 }, new List<double> { tf });
+            //             m.AddData(new List<double> { 1,1 },new List<double> { tt });
 
             return m;
         }
