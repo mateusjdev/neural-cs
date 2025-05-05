@@ -1,4 +1,6 @@
-﻿namespace NeuralNetCS
+﻿using System;
+
+namespace NeuralNetCS
 {
     struct Neuron
     {

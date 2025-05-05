@@ -35,8 +35,8 @@
         static void Main(string[] args)
         {
             Tools tools = new Tools(Tools.UseLogicGate(0, 1, 1, 0));
-            // tools.Learn(1000000);
-            // tools.PrintResult();
+            tools.Learn(1000000);
+            tools.PrintResult();
             Tools.Final();
         }
     }
