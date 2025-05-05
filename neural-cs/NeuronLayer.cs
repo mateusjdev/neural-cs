@@ -1,5 +1,13 @@
 ﻿namespace NeuralNetCS
 {
+    struct Neuron
+    {
+        // TODO: Value of what???
+        public double value;
+        // TODO: What is sigma? its the same as sigmoide?
+        public double sigma;
+    }
+
     class NeuronLayer
     {
         protected Neuron[] neurons;
@@ -15,17 +23,17 @@
 
         public virtual double GetSigmoide(int at)
         {
-            return neurons[at].Sigmo;
+            return Tools.MathSigmoide(neurons[at].value);
         }
 
         public double GetValue(int at)
         {
-            return neurons[at].Value;
+            return neurons[at].value;
         }
 
         public double GetSigma(int at)
         {
-            return neurons[at].Sigma;
+            return neurons[at].sigma;
         }
 
         // TODO: get{ Lenght }
@@ -36,12 +44,12 @@
 
         public void SetValue(int at, double value)
         {
-            neurons[at].Value = value;
+            neurons[at].value = value;
         }
 
         public void SetSigma(int at, double value)
         {
-            neurons[at].Sigma = value;
+            neurons[at].sigma = value;
         }
 
         public double[] GetOutput()
@@ -50,7 +58,7 @@
             double[] r = new double[n];
             for (int i = 0; i < n; i++)
             {
-                r[i] = neurons[i].Sigmo;
+                r[i] = Tools.MathSigmoide(neurons[i].value);
             }
             return r;
         }
@@ -62,7 +70,7 @@
 
         public override double GetSigmoide(int at)
         {
-            return neurons[at].Value;
+            return neurons[at].value;
         }
     }
 }

@@ -5,10 +5,17 @@ using System.Linq;
 
 namespace NeuralNetCS
 {
+    // TODO: This class will be replaced with all methods to a 'Factory'
+    // This class will store helper methods
     class Tools
     {
         private Matrix m;
         private Frases msgText = new Frases(0);
+
+        static public double MathSigmoide(double value)
+        {
+            return (1 / (1 + Math.Exp(-value)));
+        }
 
         public Tools(int a, int b, int c, int d)
         {
