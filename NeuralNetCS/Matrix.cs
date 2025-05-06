@@ -48,6 +48,9 @@ namespace NeuralNetCS
 
         public Matrix() { }
 
+        // TODO: Reimplementar construtor com MatrixData
+        // public Matrix(MatrixData mMatrix){}
+
         public Matrix(int nInput, int nHLayers, int nNperHLayers, int nOutput, double rate = 0.1)
         {
             mLayer = new Layer[nHLayers + 2];
@@ -61,8 +64,6 @@ namespace NeuralNetCS
             mRate = rate;
             GenP();
         }
-
-        //public Matrix(MatrixData mMatrix){}
 
         public List<double> Calculate(double[] input)
         {
