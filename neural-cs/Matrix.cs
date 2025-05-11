@@ -21,6 +21,41 @@ namespace NeuralNetCS
 
     class Matrix
     {
+        private struct ValueDelta
+        {
+            // Valores do peso/bias
+            public List<List<double>> Values;
+            // Valores que serão acrescentados aos peso no final do backpropagation
+            // TODO: Verificar se o delta dos valores pode ser alterado diretamente ou se os valores são utilizados
+            public List<List<double>> Delta;
+
+            public ValueDelta()
+            {
+                Values = new List<List<double>>();
+                Delta = new List<List<double>>();
+            }
+
+            // Aplica os valores de ajuste aos pesos/bias
+            public void ApplyDelta()
+            {
+                for (int x = 0; x < Values.Count(); x++)
+                {
+                    for (int y = 0; y < Values[x].Count(); y++)
+                    {
+                        Values[x][y] += Delta[x][y];
+                        Delta[x][y] = 0;
+                    }
+                }
+            }
+
+            // TODO: Trocar nome
+            public void AddListDouble()
+            {
+                Values.Add(new List<double>());
+                Delta.Add(new List<double>());
+            }
+        }
+
         private double[][] mDataIn;
         private double[][][] mDataOut;
         // private double[,] mWeight;
@@ -29,10 +64,9 @@ namespace NeuralNetCS
         // private double[,] mDBias;
         private NeuronLayer[] mLayer;
 
-        private List<List<double>> mWeight = new List<List<double>>();
-        private List<List<double>> mDWeight = new List<List<double>>();
-        private List<List<double>> mBias = new List<List<double>>();
-        private List<List<double>> mDBias = new List<List<double>>();
+        private ValueDelta _weight = new();
+        private ValueDelta _bias = new();
+
         // private List<List<List<double>>> mData = new List<List<List<double>>>();
         // private List<Layer> mLayer = new List<Layer>();
         private double mRate;
@@ -79,8 +113,8 @@ namespace NeuralNetCS
                 dat.nOutput = mLayer.Last().GetCount();
             }
             dat.rate = mRate;
-            dat.Weight = mWeight;
-            dat.Bias = mBias;
+            dat.Weight = _weight.Values;
+            dat.Bias = _bias.Values;
             dat.InData = mDataIn;
             dat.OutData = mDataOut;
             return dat;
@@ -245,25 +279,23 @@ namespace NeuralNetCS
             for (int x = 0; x < mLayer.GetLength(0) - 1; x++)
                 for (int y = 0; y < mLayer[x].GetCount(); y++)
                 {
-                    mWeight.Add(new List<double>());
-                    mDWeight.Add(new List<double>());
+                    _weight.AddListDouble();
                     for (int z = 0; z < mLayer[x + 1].GetCount(); ++z)
                     {
-                        mWeight.Last().Add(vec[0]);
+                        _weight.Values.Last().Add(vec[0]);
+                        _weight.Delta.Last().Add(0);
                         vec.Remove(vec.First());
-                        mDWeight.Last().Add(0);
                     }
                 }
 
             for (int x = 1; x < mLayer.GetLength(0); x++)
             {
-                mBias.Add(new List<double>());
-                mDBias.Add(new List<double>());
+                _bias.AddListDouble();
                 for (int y = 0; y < mLayer[x].GetCount(); y++)
                 {
-                    mBias.Last().Add(vec[0]);
+                    _bias.Values.Last().Add(vec[0]);
+                    _bias.Delta.Last().Add(0);
                     vec.Remove(vec.First());
-                    mDBias.Last().Add(0);
                 }
             }
         }
@@ -310,7 +342,7 @@ namespace NeuralNetCS
                 {
                     double j = 0;
                     for (int z = 0; z < mLayer[x + 1].GetCount(); ++z)
-                        j += mLayer[x + 1].GetSigma(z) * mWeight[i + y][z];
+                        j += mLayer[x + 1].GetSigma(z) * _weight.Values[i + y][z];
                     mLayer[x].SetSigma(y, mLayer[x].GetSigmoide(y) * (1 - mLayer[x].GetSigmoide(y)) * j);
                 }
             }
@@ -328,8 +360,8 @@ namespace NeuralNetCS
                 for (int y = 0; y < mLayer[x].GetCount(); y++)
                 {
                     for (int z = 0; z < mLayer[x - 1].GetCount(); ++z)
-                        mLayer[x].SetValue(y, mLayer[x].GetValue(y) + (mLayer[x - 1].GetSigmoide(z) * mWeight[z + j][y]));
-                    mLayer[x].SetValue(y, mLayer[x].GetValue(y) - mBias[x - 1][y]);
+                        mLayer[x].SetValue(y, mLayer[x].GetValue(y) + (mLayer[x - 1].GetSigmoide(z) * _weight.Values[z + j][y]));
+                    mLayer[x].SetValue(y, mLayer[x].GetValue(y) - _bias.Values[x - 1][y]);
                     ++i;
                 }
                 j = i;
@@ -338,27 +370,34 @@ namespace NeuralNetCS
 
         public void Backpropagation()
         {
-            for (int atLayer = (mLayer.GetLength(0) - 1); atLayer > 0; --atLayer)
-                for (int atNeuron = 0; atNeuron < mLayer[atLayer].GetCount(); ++atNeuron)
-                    for (int x = 0; x < mLayer[atLayer - 1].GetCount(); x++)
+            int beforeLayer = -1;
+            for (int atLayer = (mLayer.GetLength(0) - 1); atLayer > 0; atLayer--)
+            {
+                beforeLayer = atLayer - 1;
+                for (int atNeuron = 0; atNeuron < mLayer[atLayer].GetCount(); atNeuron++)
+                {
+                    for (int x = 0; x < mLayer[beforeLayer].GetCount(); x++)
                     {
                         int i = 0;
-                        for (int y = 0; y < atLayer - 1; y++)
+                        for (int y = 0; y < beforeLayer; y++)
+                        {
                             i += mLayer[y].GetCount();
-                        mDWeight[x + i][atNeuron] = (mRate * mLayer[atLayer - 1].GetSigmoide(x) * mLayer[atLayer].GetSigma(atNeuron));
+                        }
+                        _weight.Values[x + i][atNeuron] = (mRate * mLayer[beforeLayer].GetSigmoide(x) * mLayer[atLayer].GetSigma(atNeuron));
                     }
+                }
+            }
 
-            for (int x = 0; x < mBias.Count(); x++)
-                for (int y = 0; y < mBias[x].Count(); y++)
-                    mDBias[x][y] = (mRate * -1 * mLayer[x + 1].GetSigma(y));
+            for (int i = 0; i < _bias.Delta.Count(); i++)
+            {
+                for (int j = 0; j < _bias.Delta[i].Count(); j++)
+                {
+                    _bias.Delta[i][j] = (mRate * -1 * mLayer[i + 1].GetSigma(j));
+                }
+            }
 
-            for (int x = 0; x < mWeight.Count(); x++)
-                for (int y = 0; y < mWeight[x].Count(); y++)
-                    mWeight[x][y] += mDWeight[x][y];
-
-            for (int x = 0; x < mBias.Count(); x++)
-                for (int y = 0; y < mBias[x].Count(); y++)
-                    mBias[x][y] += mDBias[x][y];
+            _weight.ApplyDelta();
+            _bias.ApplyDelta();
         }
     }
 }
