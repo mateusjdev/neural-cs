@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace NeuralNetCS
@@ -94,7 +95,9 @@ namespace NeuralNetCS
                 mLayer[x] = new NeuronLayer(nNperHLayers);
 
             mRate = rate;
-            GenP();
+            InitializeValues();
+            LearnFor(1);
+            Environment.Exit(0);
         }
 
         public double[] Calculate(double[] input)
@@ -118,15 +121,6 @@ namespace NeuralNetCS
             dat.InData = mDataIn;
             dat.OutData = mDataOut;
             return dat;
-        }
-
-        public List<double> GenRand(int i)
-        {
-            Random rnd = new Random();
-            List<double> vec = new List<double>();
-            for (int x = 0; x < i; x++)
-                vec.Add((double)rnd.Next(-999999, 999999) / 1000000);
-            return vec;
         }
 
         public int AddData(List<double> mInput, List<double> mOutput)
@@ -262,40 +256,40 @@ namespace NeuralNetCS
             return 0;
         }
 
-        public void GenP()
+        public void InitializeValues()
         {
-            int i = 0;
+            int n = 0;
             for (int x = 0; x < mLayer.GetLength(0) - 1; x++)
                 for (int y = 0; y < mLayer[x].GetCount(); y++)
-                    for (int z = 0; z < mLayer[x + 1].GetCount(); ++z)
-                        i++;
+                    n += mLayer[x + 1].GetCount();
 
             for (int x = 1; x < mLayer.GetLength(0); x++)
-                for (int y = 0; y < mLayer[x].GetCount(); y++)
-                    i++;
+                n += mLayer[x].GetCount();
 
-            List<double> vec = GenRand(i);
+            // TODO: Profile: Generate random numbers here
+            double[] randomNumbers = Tools.GenerateNRandomNumbers(n);
+            int randomNumbersPos = 0;
 
             for (int x = 0; x < mLayer.GetLength(0) - 1; x++)
+            {
                 for (int y = 0; y < mLayer[x].GetCount(); y++)
                 {
                     _weight.AddListDouble();
                     for (int z = 0; z < mLayer[x + 1].GetCount(); ++z)
                     {
-                        _weight.Values.Last().Add(vec[0]);
+                        _weight.Values.Last().Add(randomNumbers[randomNumbersPos++]);
                         _weight.Delta.Last().Add(0);
-                        vec.Remove(vec.First());
                     }
                 }
+            }
 
             for (int x = 1; x < mLayer.GetLength(0); x++)
             {
                 _bias.AddListDouble();
                 for (int y = 0; y < mLayer[x].GetCount(); y++)
                 {
-                    _bias.Values.Last().Add(vec[0]);
+                    _bias.Values.Last().Add(randomNumbers[randomNumbersPos++]);
                     _bias.Delta.Last().Add(0);
-                    vec.Remove(vec.First());
                 }
             }
         }
@@ -320,13 +314,36 @@ namespace NeuralNetCS
                 }
         }
 
+        public int LearnForTimer(int iterations)
+        {
+            if (iterations < 1)
+            {
+                Console.WriteLine(msgText.ERR1c00);
+                return -1;
+            }
+
+            if (mRate <= 0)
+            {
+                Console.WriteLine(msgText.ERR1c01);
+                return -1;
+            }
+
+            Console.WriteLine(msgText.TX1c00);
+            var contador = Stopwatch.StartNew();
+            LearnFor(iterations);
+            contador.Stop();
+            Console.WriteLine(msgText.TX1c01 + contador.Elapsed.TotalSeconds + "s\n");
+
+            return 0;
+        }
+
         public void Sigma(int dataPosition)
         {
             for (int y = 0; y < mLayer.Last().GetCount(); y++)
             {
                 double mLayerLastSigmoide = mLayer.Last().GetSigmoide(y);
                 // TODO: mDataOut here is null
-                // But i dont'k now what is mDataOut
+                // But i don't know what is mDataOut
                 Console.WriteLine(mLayerLastSigmoide);
                 mLayer.Last().SetSigma(y, mLayerLastSigmoide * (1 - mLayerLastSigmoide) * (mDataOut[dataPosition].First()[y] - mLayerLastSigmoide));
                 mDataOut[dataPosition].Last()[y] = mLayer.Last().GetSigmoide(y);

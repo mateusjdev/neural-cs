@@ -9,58 +9,41 @@ namespace NeuralNetCS
     // This class will store helper methods
     class Tools
     {
-        private Matrix m;
-        private Frases msgText = new Frases(0);
-
-        static public double MathSigmoide(double value)
+        public static Matrix UseLogicGate(double falseFalse, double falseTrue, double trueFalse, double trueTrue)
         {
-            return (1 / (1 + Math.Exp(-value)));
+            Matrix n = new Matrix(2, 1, 2, 1, 0.05);
+
+            n.AddData(new List<double> { 0, 0 }, new List<double> { falseFalse });
+            n.AddData(new List<double> { 0, 1 }, new List<double> { falseTrue });
+            n.AddData(new List<double> { 1, 0 }, new List<double> { trueFalse });
+            n.AddData(new List<double> { 1, 1 }, new List<double> { trueTrue });
+
+            return n;
         }
 
-        public Tools(int a, int b, int c, int d)
+        // Document: Generate N Random Numbers, double, 6digit precision
+        public static double[] GenerateNRandomNumbers(int n)
         {
-            m = new Matrix(a, b, c, d);
-        }
-
-        public Tools(Matrix M)
-        {
-            m = M;
-        }
-
-        public static Matrix UseLogicGate(double ff, double ft, double tf, double tt)
-        {
-            Matrix m = new Matrix(2, 1, 2, 1, 0.05);
-
-            m.AddData(new List<double> { 1, 1 }, new List<double> { tt });
-            m.AddData(new List<double> { 0, 0 }, new List<double> { ff });
-            m.AddData(new List<double> { 0, 1 }, new List<double> { ft });
-            m.AddData(new List<double> { 1, 0 }, new List<double> { tf });
-            //             m.AddData(new List<double> { 1,1 },new List<double> { tt });
-
-            return m;
-        }
-
-        public int Learn(int iterations)
-        {
-            if (iterations == 0)
+            Random randomNumberGenerator = new Random();
+            double[] numbers = new double[n];
+            for (int i = 0; i < numbers.Length; i++)
             {
-                Console.WriteLine(msgText.ERR1c00);
-                return -1;
-            }
-            if (m.Rate <= 0)
-            {
-                Console.WriteLine(msgText.ERR1c01);
-                return -1;
+                numbers[i] = (randomNumberGenerator.Next(-1000000, 1000001) / 1000000);
             }
 
-            Console.WriteLine(msgText.TX1c00);
-            var contador = Stopwatch.StartNew();
-            m.LearnFor(iterations);
-            contador.Stop();
-            Console.WriteLine(msgText.TX1c01 + contador.Elapsed.TotalSeconds + "s\n");
-
-            return 0;
+            return numbers;
         }
+
+        /* TODO: Profile
+        public static List<double> GenerateNRandomNumbersList(int i)
+        {
+            Random rnd = new Random();
+            List<double> vec = new List<double>();
+            for (int x = 0; x < i; x++)
+                vec.Add((double)rnd.Next(-1000000, 1000001) / 1000000);
+            return vec;
+        }
+        */
 
         /*
         public void LogicCalc(bool logic = false)
@@ -102,57 +85,53 @@ namespace NeuralNetCS
         }
         */
 
-        public void PrintResult()
+        public static void PrintResult(MatrixData networkData)
         {
-            MatrixData tmp = m.GetAllData();
+            Frases msgText = new Frases(0);
+
             Console.WriteLine(msgText.TX1c10);
-            for (int x = 0; x < tmp.Weight.Count(); ++x)
+            for (int x = 0; x < networkData.Weight.Count(); ++x)
             {
-                for (int y = 0; y < tmp.Weight[x].Count(); ++y)
-                    Console.Write("[" + x + "," + y + "] " + Math.Round(tmp.Weight[x][y], 6) + "\t");
+                for (int y = 0; y < networkData.Weight[x].Count(); ++y)
+                    Console.Write("[" + x + "," + y + "] " + Math.Round(networkData.Weight[x][y], 6) + "\t");
                 Console.WriteLine();
             }
+
             Console.WriteLine(msgText.TX1c11);
-            for (int x = 0; x < tmp.Bias.Count(); ++x)
+            for (int x = 0; x < networkData.Bias.Count(); ++x)
             {
-                for (int y = 0; y < tmp.Bias[x].Count(); ++y)
-                    Console.Write("[" + x + "," + y + "] " + Math.Round(tmp.Bias[x][y], 6) + "\t");
+                for (int y = 0; y < networkData.Bias[x].Count(); ++y)
+                    Console.Write("[" + x + "," + y + "] " + Math.Round(networkData.Bias[x][y], 6) + "\t");
                 Console.WriteLine();
             }
+
             Console.WriteLine(msgText.TX1c12);
-            for (int x = 0; x < tmp.InData.GetLength(0); ++x)
+            for (int x = 0; x < networkData.InData.GetLength(0); ++x)
             {
-                for (int y = 0; y < tmp.nOutput; ++y)
-                    Console.Write(msgText.TX1c16 + x + "):\t" + Math.Round(tmp.OutData[x].First()[y], 6) + "\t");
+                for (int y = 0; y < networkData.nOutput; ++y)
+                    Console.Write(msgText.TX1c16 + x + "):\t" + Math.Round(networkData.OutData[x].First()[y], 6) + "\t");
                 Console.WriteLine();
-                for (int y = 0; y < tmp.nOutput; ++y)
-                    Console.Write(msgText.TX1c17 + x + "):\t" + Math.Round(tmp.OutData[x].First()[y] - tmp.OutData[x].Last()[y], 6) + "\t");
+                for (int y = 0; y < networkData.nOutput; ++y)
+                    Console.Write(msgText.TX1c17 + x + "):\t" + Math.Round(networkData.OutData[x].First()[y] - networkData.OutData[x].Last()[y], 6) + "\t");
                 Console.WriteLine();
             }
             Console.WriteLine(msgText.TX1c13);
+
             double tot = 0.0;
             int n = 0;
-            for (int x = 0; x < tmp.InData.GetLength(0); ++x)
+            for (int x = 0; x < networkData.InData.GetLength(0); ++x)
             {
-                for (int y = 0; y < tmp.nOutput; ++y)
+                int y = 0;
+                for (; y < networkData.nOutput; y++)
                 {
-                    tot += Math.Abs(tmp.OutData[x].First()[y] - tmp.OutData[x].Last()[y]);
-                    ++n;
+                    tot += Math.Abs(networkData.OutData[x].First()[y] - networkData.OutData[x].Last()[y]);
                 }
+                n += y;
             }
             Console.WriteLine(msgText.TX1c14 + Math.Round(tot, 6) + "\n" + msgText.TX1c15 + Math.Round((100 * tot) / n, 6));
         }
-        public void SetMatrix(Matrix newMatrix)
-        {
-            m = newMatrix;
-        }
 
-        public Matrix GetMatrix()
-        {
-            return m;
-        }
-
-        public static void Final()
+        public static void EnterToContinue()
         {
             Console.WriteLine("\n# Aperte enter para continuar...");
             Console.ReadKey();

@@ -34,10 +34,10 @@
     {
         static void Main(string[] args)
         {
-            Tools tools = new Tools(Tools.UseLogicGate(0, 1, 1, 0));
-            tools.Learn(1000000);
-            tools.PrintResult();
-            Tools.Final();
+            Matrix matrix = Tools.UseLogicGate(0, 1, 1, 0);
+            matrix.LearnFor(1000000);
+            Tools.PrintResult(matrix.GetAllData());
+            Tools.EnterToContinue();
         }
     }
 
