@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Emit;
 
 namespace NeuralNetCS
 {
-    struct MatrixData
+    struct MatrixDataOld
     {
         public int nInput, nHLayers, nNperHLayers, nOutput;
         public double rate;
@@ -21,182 +22,323 @@ namespace NeuralNetCS
 
     class Matrix
     {
-        private double[][] mDataIn;
-        private double[][][] mDataOut;
-        // private double[,] mWeight;
-        // private double[,] mDWeight;
-        // private double[,] mBias;
-        // private double[,] mDBias;
-        private NeuronLayer[] mLayer;
-
-        private List<List<double>> mWeight = new List<List<double>>();
-        private List<List<double>> mDWeight = new List<List<double>>();
-        private List<List<double>> mBias = new List<List<double>>();
-        private List<List<double>> mDBias = new List<List<double>>();
-        // private List<List<List<double>>> mData = new List<List<List<double>>>();
-        // private List<Layer> mLayer = new List<Layer>();
-        private double mRate;
-        private Frases msgText = new Frases(0);
-
-        public double Rate
+        private struct MatrixData
         {
-            get { return mRate; }
-            set { mRate = value; }
+            // Number of neurons of the input layer                
+            public int InputLayerNeuronsNumber;
+            // Number of hidden layers                             
+            public int HiddenLayersNeuron;
+            // Number of neurons of each hidden layer              
+            public int NNeuronsHiddenLayer;
+            // Number of neurons of the output layer               
+            public int NNeuronsOutputLayer;
+
+            // Learning rate                                       
+            public double rate;
+
+            // TODO: This can be stored in Neuron?
+            // Weight Array                                        
+            public List<List<double>> Weight;
+            // Bias Array                                          
+            public List<List<double>> Bias;
         }
+
+        // TODO: Choose whats private and what's not
+        class Network
+        {
+            // Number of neurons on the input layer                
+            private int _inputLayerSize;
+            // Number of neurons on each hidden layer              
+            private int[] _hiddenLayersSize;
+            // Number of neurons on the output layer               
+            private int _outputLayerSize;
+
+            // Learning rate                                       
+            public double TrainingRate;
+
+            // TODO: Verificar set; get e limitar a alteração dos dados
+            public NeuronLayer[] NeuronLayers;
+
+            private Network() { }
+
+            private static Network? createNetwork(int inputLayerSize, int[] hiddenLayersSizePerLayer, int outputLayerSize, double trainingRate = 0.1)
+            {
+                // Check if all values are valid
+                if (inputLayerSize < 1)
+                {
+                    throw new Exception("Network: Invalid Layer Size");
+                }
+
+                if (hiddenLayersSizePerLayer.Length < 1)
+                {
+                    throw new Exception("Network: Invalid Layer Size");
+                }
+
+                foreach (var size in hiddenLayersSizePerLayer)
+                {
+                    if (size < 1)
+                        throw new Exception("Network: Invalid Layer Size");
+                }
+
+                if (outputLayerSize < 1)
+                    throw new Exception("Network: Invalid Layer Size");
+
+                Network network = new Network();
+
+                // Store information about the size of the network
+                network._inputLayerSize = inputLayerSize;
+                network._outputLayerSize = outputLayerSize;
+                network._hiddenLayersSize = hiddenLayersSizePerLayer;
+
+                // Create NeuronLayers
+                int arraySize = 2 + hiddenLayersSizePerLayer.Length;
+                network.NeuronLayers = new NeuronLayer[arraySize];
+
+                network.NeuronLayers[0] = new InputNeuronLayer(inputLayerSize);
+                int i = 1;
+                for (; i < arraySize - 1; i++)
+                {
+                    network.NeuronLayers[i] = new NeuronLayer(hiddenLayersSizePerLayer[i - 1]);
+                }
+                network.NeuronLayers[i] = new NeuronLayer(outputLayerSize);
+
+                network.TrainingRate = trainingRate;
+
+                return network;
+            }
+        }
+
+        struct NetworkData
+        {
+            public double[] _inputTrainingData;
+            public double[] _outputTrainingData;
+
+            NetworkData(double[] inputTrainingData, double[] outputTrainingData)
+            {
+                _inputTrainingData = inputTrainingData;
+                _outputTrainingData = outputTrainingData;
+            }
+        }
+
+        // Number of neurons on the input layer                
+        private int _inputLayerSize;
+        // Number of neurons on each hidden layer              
+        private int[] _hiddenLayersSize;
+        // Number of neurons on the output layer               
+        private int _outputLayerSize;
+
+        // Learning rate                                       
+        public double LearningRate;
+
+        // TODO: Verificar set; get e limitar a alteração dos dados
+        public NeuronLayer[] NeuronLayers;
+
+        // Data used to train the network:
+        // Input: for each I input there is a input J values for each input neuron
+        private double[][] TrainingDataInput;
+        // Output: For each I input there's a ??????
+        // TODO: Make a struct to simplify this
+        private double[][][] TrainingDataOutput;
+
+        struct ValueDelta
+        {
+            // Valores do peso/bias
+            public List<List<double>> Values;
+            // Valores que serão acrescentados aos peso no final do backpropagation
+            // TODO: Verificar se o delta dos valores pode ser alterado diretamente ou se os valores são utilizados
+            public List<List<double>> Delta;
+
+            public ValueDelta()
+            {
+                Values = new List<List<double>>();
+                Delta = new List<List<double>>();
+            }
+
+            public double GetValue(int x, int y)
+            {
+                return Values[x][y];
+            }
+
+            // Aplica os valores de ajuste aos pesos/bias
+            public void ApplyDelta()
+            {
+                for (int x = 0; x < Values.Count(); x++)
+                {
+                    for (int y = 0; y < Values[x].Count(); y++)
+                    {
+                        Values[x][y] += Delta[x][y];
+                        Delta[x][y] = 0;
+                    }
+                }
+            }
+
+            // TODO: Trocar nome
+            public void AddListDouble()
+            {
+                Values.Add(new List<double>());
+                Delta.Add(new List<double>());
+            }
+        }
+
+        private ValueDelta _weight = new ValueDelta();
+        private ValueDelta _bias = new ValueDelta();
+
+        // TODO: Make a better struct for this data type
+        private Frases msgText = new Frases(0);
 
         public Matrix() { }
 
         // TODO: Reimplementar construtor com MatrixData
         // public Matrix(MatrixData mMatrix){}
 
-        public Matrix(int nInput, int nHLayers, int nNperHLayers, int nOutput, double rate = 0.1)
+        public Matrix(int nInput, int nHLayers, int nNperHLayers, int nOutput, double trainingRate = 0.1)
         {
-            mLayer = new NeuronLayer[nHLayers + 2];
+            NeuronLayers = new NeuronLayer[nHLayers + 2];
 
-            mLayer[0] = new InputNeuronLayer(nInput);
-            mLayer[mLayer.GetLength(0) - 1] = new NeuronLayer(nOutput);
+            NeuronLayers[0] = new InputNeuronLayer(nInput);
+            NeuronLayers[NeuronLayers.GetLength(0) - 1] = new NeuronLayer(nOutput);
 
             for (int x = 1; x - 1 < nHLayers; x++)
-                mLayer[x] = new NeuronLayer(nNperHLayers);
+                NeuronLayers[x] = new NeuronLayer(nNperHLayers);
 
-            mRate = rate;
-            GenP();
+            LearningRate = trainingRate;
+            InitializeValues();
         }
 
         public double[] Calculate(double[] input)
         {
             Feedforward(input);
-            return mLayer.Last().GetOutput();
+            return NeuronLayers.Last().GetOutput();
         }
 
-        public MatrixData GetAllData()
+        [Obsolete("GetAllData() is obsolete, use GetMatrixData")]
+        public MatrixDataOld GetAllData()
         {
-            MatrixData dat = new MatrixData();
+            MatrixDataOld dat = new MatrixDataOld();
             {
-                dat.nInput = mLayer.First().GetCount();
-                dat.nHLayers = (mLayer.GetLength(0) - 2);
-                dat.nNperHLayers = mLayer[1].GetCount();
-                dat.nOutput = mLayer.Last().GetCount();
+                dat.nInput = NeuronLayers[0].Length;
+                dat.nHLayers = (NeuronLayers.GetLength(0) - 2);
+                dat.nNperHLayers = NeuronLayers[1].Length;
+                dat.nOutput = NeuronLayers.Last().Length;
             }
-            dat.rate = mRate;
-            dat.Weight = mWeight;
-            dat.Bias = mBias;
-            dat.InData = mDataIn;
-            dat.OutData = mDataOut;
+            dat.rate = LearningRate;
+            dat.Weight = _weight.Values;
+            dat.Bias = _bias.Values;
+            dat.InData = TrainingDataInput;
+            dat.OutData = TrainingDataOutput;
             return dat;
         }
 
-        public List<double> GenRand(int i)
+        public int AddData(double[] mInput, double[] mOutput)
         {
-            Random rnd = new Random();
-            List<double> vec = new List<double>();
-            for (int x = 0; x < i; x++)
-                vec.Add((double)rnd.Next(-999999, 999999) / 1000000);
-            return vec;
-        }
+            int nInput = NeuronLayers[0].Length, nOutput = NeuronLayers.Last().Length;
 
-        public int AddData(List<double> mInput, List<double> mOutput)
-        {
-            if (mInput.Count() != mLayer.First().GetCount() || mOutput.Count != mLayer.Last().GetCount())
+            if (mInput.Length != nInput)
             {
+                // Input data doesn't match the Matrix Design (Layer Size)
                 Console.WriteLine("# ERR # OUT Invalid number of Param");
                 return -1;
             }
 
-            int nInput = mLayer.First().GetCount(), nOutput = mLayer.Last().GetCount();
+            if (mOutput.Length != nOutput)
+            {
+                // Output data doesn't match the Matrix Design (Layer Size)
+                Console.WriteLine("# ERR # OUT Invalid number of Param");
+                return -1;
+            }
 
-            if (mDataIn != null && mDataOut == null ||
-                mDataIn == null && mDataOut != null)
+            if (TrainingDataInput != null && TrainingDataOutput == null ||
+                TrainingDataInput == null && TrainingDataOutput != null)
             {
                 return -1;
             }
 
-            if (mDataIn == null && mDataOut == null)
+            if (TrainingDataInput == null && TrainingDataOutput == null)
             {
-                mDataIn = new double[1][];
-                mDataIn[0] = new double[nInput];
+                TrainingDataInput = new double[1][];
+                TrainingDataInput[0] = new double[nInput];
                 for (int x = 0; x < nInput; x++)
-                    mDataIn[0][x] = mInput[x];
-                mDataOut = new double[1][][];
-                mDataOut[0] = new double[2][];
-                mDataOut[0][0] = new double[nOutput];
-                mDataOut[0][1] = new double[nOutput];
+                    TrainingDataInput[0][x] = mInput[x];
+                TrainingDataOutput = new double[1][][];
+                TrainingDataOutput[0] = new double[2][];
+                TrainingDataOutput[0][0] = new double[nOutput];
+                TrainingDataOutput[0][1] = new double[nOutput];
                 for (int x = 0; x < nOutput; x++)
                 {
-                    mDataOut[0][0][x] = mOutput[x];
-                    mDataOut[0][1][x] = 0;
+                    TrainingDataOutput[0][0][x] = mOutput[x];
+                    TrainingDataOutput[0][1][x] = 0;
                 }
                 return 0;
             }
 
-            // if mDataIn != null && mDataOut != null
+            // if TrainingDataInput != null && TrainingDataOutput != null
 
-            double[][] tmpIn = mDataIn;
-            mDataIn = new double[tmpIn.GetLength(0) + 1][];
+            double[][] tmpIn = TrainingDataInput;
+            TrainingDataInput = new double[tmpIn.GetLength(0) + 1][];
 
             for (int x = 0; x < tmpIn.GetLength(0) + 1; x++)
             {
-                mDataIn[x] = new double[nInput];
+                TrainingDataInput[x] = new double[nInput];
             }
 
             for (int x = 0; x < tmpIn.GetLength(0); x++)
             {
                 for (int y = 0; y < nInput; y++)
                 {
-                    mDataIn[x][y] = tmpIn[x][y];
+                    TrainingDataInput[x][y] = tmpIn[x][y];
                 }
             }
 
             for (int x = 0; x < nInput; x++)
             {
-                mDataIn.Last()[x] = mInput[x];
+                TrainingDataInput.Last()[x] = mInput[x];
             }
 
-            double[][][] tmpOut = mDataOut;
+            double[][][] tmpOut = TrainingDataOutput;
 
-            mDataOut = new double[tmpOut.GetLength(0) + 1][][];
+            TrainingDataOutput = new double[tmpOut.GetLength(0) + 1][][];
             for (int x = 0; x < tmpOut.GetLength(0) + 1; x++)
-                mDataOut[x] = new double[2][];
+                TrainingDataOutput[x] = new double[2][];
 
             for (int x = 0; x < tmpOut.GetLength(0); x++)
             {
-                mDataOut[x][0] = new double[nOutput];
-                mDataOut[x][1] = new double[nOutput];
+                TrainingDataOutput[x][0] = new double[nOutput];
+                TrainingDataOutput[x][1] = new double[nOutput];
             }
 
             for (int x = 0; x < tmpOut.GetLength(0); x++)
             {
                 for (int y = 0; y < nOutput; y++)
                 {
-                    mDataOut[x][0][y] = mOutput[y];
-                    mDataOut[x][1][y] = 0;
+                    TrainingDataOutput[x][0][y] = mOutput[y];
+                    TrainingDataOutput[x][1][y] = 0;
                 }
             }
 
             /*
             for (int x = 0; x < tmpIn.GetLength(0); x++)
                 for (int y = 0; y < tmpIn[x].GetLength(0); y++)
-                    mDataIn[x][y] = 
-                    mDataIn[x][y] = mInput[x];
+                    TrainingDataInput[x][y] = 
+                    TrainingDataInput[x][y] = mInput[x];
             for (int x = 0;x < mInput.Count() ; x++)
-            mDataIn[]
+            TrainingDataInput[]
 
-            mDataOut = new double[1][][];
-            mDataOut[0] = new double[1][];
-            mDataOut[1] = new double[1][];
-            mDataOut[0][0] = new double[mOutput.Count()];
-            mDataOut[0][1] = new double[mOutput.Count()];
-            for (int x = 0; x < mDataOut.GetLength(0); x++)
+            TrainingDataOutput = new double[1][][];
+            TrainingDataOutput[0] = new double[1][];
+            TrainingDataOutput[1] = new double[1][];
+            TrainingDataOutput[0][0] = new double[mOutput.Count()];
+            TrainingDataOutput[0][1] = new double[mOutput.Count()];
+            for (int x = 0; x < TrainingDataOutput.GetLength(0); x++)
             {
-                mDataOut[0][0][x] = mOutput[x];
-                mDataOut[0][1][x] = 0;
+                TrainingDataOutput[0][0][x] = mOutput[x];
+                TrainingDataOutput[0][1][x] = 0;
             }
 
-            mDataIn = new double[mData.GetLength(0) + 1][][];
-            mDataIn = new double[mData.GetLength(0) + 1][][];
+            TrainingDataInput = new double[mData.GetLength(0) + 1][][];
+            TrainingDataInput = new double[mData.GetLength(0) + 1][][];
 
 
-            //  mLayer.First().GetCount()][mLayer.Last().GetCount()];
+            //  NeuronLayers[0].GetCount()][NeuronLayers.Last().GetCount()];
             for (int x = 0; x <   ; x++)
             {
 
@@ -220,7 +362,7 @@ namespace NeuralNetCS
                 mData.Last()[0].Add(x);
             foreach (double x in mOutput)
                 mData.Last()[1].Add(x);
-            for (int x = 0; x < mLayer.Last().GetCount(); x++)
+            for (int x = 0; x < NeuronLayers.Last().GetCount(); x++)
                 mData.Last()[2].Add(0);
             */
 
@@ -228,51 +370,51 @@ namespace NeuralNetCS
             return 0;
         }
 
-        public void GenP()
+        public void InitializeValues()
         {
             int i = 0;
-            for (int x = 0; x < mLayer.GetLength(0) - 1; x++)
-                for (int y = 0; y < mLayer[x].GetCount(); y++)
-                    for (int z = 0; z < mLayer[x + 1].GetCount(); ++z)
-                        i++;
-
-            for (int x = 1; x < mLayer.GetLength(0); x++)
-                for (int y = 0; y < mLayer[x].GetCount(); y++)
-                    i++;
-
-            List<double> vec = GenRand(i);
-
-            for (int x = 0; x < mLayer.GetLength(0) - 1; x++)
-                for (int y = 0; y < mLayer[x].GetCount(); y++)
-                {
-                    mWeight.Add(new List<double>());
-                    mDWeight.Add(new List<double>());
-                    for (int z = 0; z < mLayer[x + 1].GetCount(); ++z)
-                    {
-                        mWeight.Last().Add(vec[0]);
-                        vec.Remove(vec.First());
-                        mDWeight.Last().Add(0);
-                    }
-                }
-
-            for (int x = 1; x < mLayer.GetLength(0); x++)
+            for (int x = 0; x < NeuronLayers.GetLength(0) - 1; x++)
             {
-                mBias.Add(new List<double>());
-                mDBias.Add(new List<double>());
-                for (int y = 0; y < mLayer[x].GetCount(); y++)
+                for (int y = 0; y < NeuronLayers[x].Length; y++)
                 {
-                    mBias.Last().Add(vec[0]);
-                    vec.Remove(vec.First());
-                    mDBias.Last().Add(0);
+                    i += NeuronLayers[x + 1].Length;
                 }
             }
-        }
 
-        public void ResetHL()
-        {
-            foreach (NeuronLayer layer in mLayer)
-                for (int y = 0; y < layer.GetCount(); y++)
-                    layer.SetValue(y, 0);
+            for (int x = 1; x < NeuronLayers.GetLength(0); x++)
+            {
+                i += NeuronLayers[x].Length;
+            }
+
+            // TODO: Profile: Verificar necessidade de gerar todos os números aleatórios de uma vez
+            // Colocar o random.next nessa função agilizaria a geração dos números já que não seria necessário contar
+            double[] randomNumbers = Tools.GenerateNRandomNumbers(i);
+            int randomNumberPos = 0;
+
+            // X: 0, 1
+            for (int x = 0; x < NeuronLayers.GetLength(0) - 1; x++)
+            {
+                // Y: 0, 1, 2, 3
+                for (int y = 0; y < NeuronLayers[x].Length; y++)
+                {
+                    _weight.AddListDouble();
+                    for (int z = 0; z < NeuronLayers[x + 1].Length; ++z)
+                    {
+                        _weight.Values.Last().Add(randomNumbers[randomNumberPos++]);
+                        _weight.Delta.Last().Add(0);
+                    }
+                }
+            }
+
+            for (int x = 1; x < NeuronLayers.GetLength(0); x++)
+            {
+                _bias.AddListDouble();
+                for (int y = 0; y < NeuronLayers[x].Length; y++)
+                {
+                    _bias.Values.Last().Add(randomNumbers[randomNumberPos++]);
+                    _bias.Delta.Last().Add(0);
+                }
+            }
         }
 
         public void LearnFor(int iterations)
@@ -280,85 +422,119 @@ namespace NeuralNetCS
             // Verify(); last list on data
             // other
             for (int x = 0; x < iterations; x++)
-                for (int y = 0; y < mDataIn.GetLength(0); y++)
-                {
-                    Feedforward(mDataIn[y]);
-                    Sigma(y);
-                    Backpropagation();
-                }
+            {
+                int nDataIn = TrainingDataInput.GetLength(0);
+            }
+
+            for (int y = 0; y < TrainingDataInput.GetLength(0); y++)
+            {
+                Feedforward(TrainingDataInput[y]);
+                Sigma(y);
+                Backpropagation();
+            }
         }
 
         public void Sigma(int dataPosition)
         {
-            for (int y = 0; y < mLayer.Last().GetCount(); y++)
+            for (int y = 0; y < NeuronLayers.Last().Length; y++)
             {
-                double mLayerLastSigmoide = mLayer.Last().GetSigmoide(y);
-                // TODO: mDataOut here is null
-                // But i dont'k now what is mDataOut
-                Console.WriteLine(mLayerLastSigmoide);
-                mLayer.Last().SetSigma(y, mLayerLastSigmoide * (1 - mLayerLastSigmoide) * (mDataOut[dataPosition].First()[y] - mLayerLastSigmoide));
-                mDataOut[dataPosition].Last()[y] = mLayer.Last().GetSigmoide(y);
+                double NeuronLayersLastSigmoide = NeuronLayers.Last().GetSigmoide(y);
+                // TODO: TrainingDataOutput here is null
+                // But i don't know what is TrainingDataOutput
+                Console.WriteLine(NeuronLayersLastSigmoide);
+                NeuronLayers.Last().SetSigma(y, NeuronLayersLastSigmoide * (1 - NeuronLayersLastSigmoide) * (TrainingDataOutput[dataPosition][0][y] - NeuronLayersLastSigmoide));
+                TrainingDataOutput[dataPosition].Last()[y] = NeuronLayers.Last().GetSigmoide(y);
             }
 
-            for (int x = (mLayer.GetLength(0) - 2); x > 0; --x)
+            for (int x = (NeuronLayers.Length - 2); x > 0; x--)
             {
                 int i = 0;
                 for (int y = 0; y < x; y++)
-                    i += mLayer[y].GetCount();
+                {
+                    i += NeuronLayers[y].Length;
+                }
 
-                for (int y = 0; y < mLayer[x].GetCount(); y++)
+                for (int y = 0; y < NeuronLayers[x].Length; y++)
                 {
                     double j = 0;
-                    for (int z = 0; z < mLayer[x + 1].GetCount(); ++z)
-                        j += mLayer[x + 1].GetSigma(z) * mWeight[i + y][z];
-                    mLayer[x].SetSigma(y, mLayer[x].GetSigmoide(y) * (1 - mLayer[x].GetSigmoide(y)) * j);
+                    for (int z = 0; z < NeuronLayers[x + 1].Length; ++z)
+                    {
+                        j += NeuronLayers[x + 1].GetSigma(z) * _weight.Values[i + y][z];
+                    }
+                    double sigmoide = NeuronLayers[x].GetSigmoide(y);
+                    NeuronLayers[x].SetSigma(y, sigmoide * (1 - sigmoide) * j);
                 }
             }
 
         }
 
-        public void Feedforward(double[] dat)
+        public void Feedforward(double[] trainingData)
         {
-            ResetHL();
-            for (int x = 0; x < mLayer.First().GetCount(); x++)
-                mLayer.First().SetValue(x, dat[x]);
-            int i = 0, j = 0;
-            for (int x = 1; x < mLayer.GetLength(0); x++)
+            // Se a quantidade de dados para treino diferente da quantidade de neurônios na camada de entrada
+            if (trainingData.Length != NeuronLayers[0].Length)
+                return;
+
+            // Clear al values from Neuron Layers; Except Input Layer
+            for (int layer = 1; layer < NeuronLayers.Length; layer++)
             {
-                for (int y = 0; y < mLayer[x].GetCount(); y++)
+                NeuronLayers[layer].ClearValues();
+            }
+
+            // Set values from trainingData to Input Layer
+            for (int neuron = 0; neuron < NeuronLayers[0].Length; neuron++)
+            {
+                NeuronLayers[0].SetValue(neuron, trainingData[neuron]);
+            }
+
+            int i = 0, j = 0;
+            for (int x = 1; x < NeuronLayers.Length; x++, j = i)
+            {
+                int beforeLayer = x - 1;
+                for (int y = 0; y < NeuronLayers[x].Length; y++, i++)
                 {
-                    for (int z = 0; z < mLayer[x - 1].GetCount(); ++z)
-                        mLayer[x].SetValue(y, mLayer[x].GetValue(y) + (mLayer[x - 1].GetSigmoide(z) * mWeight[z + j][y]));
-                    mLayer[x].SetValue(y, mLayer[x].GetValue(y) - mBias[x - 1][y]);
-                    ++i;
+                    // TODO: Profile: use double to store values
+                    for (int z = 0; z < NeuronLayers[beforeLayer].Length; ++z)
+                    {
+                        NeuronLayers[x].SetValue(y, NeuronLayers[x].GetValue(y) + (NeuronLayers[beforeLayer].GetSigmoide(z) * _weight.GetValue(z + j, y)));
+                    }
+                    NeuronLayers[x].SetValue(y, NeuronLayers[x].GetValue(y) - _bias.GetValue(beforeLayer, y));
                 }
-                j = i;
             }
         }
 
         public void Backpropagation()
         {
-            for (int atLayer = (mLayer.GetLength(0) - 1); atLayer > 0; --atLayer)
-                for (int atNeuron = 0; atNeuron < mLayer[atLayer].GetCount(); ++atNeuron)
-                    for (int x = 0; x < mLayer[atLayer - 1].GetCount(); x++)
+            // For every layer at NeuronLayers -> Backwards
+            for (int atLayer = (NeuronLayers.Length - 1); atLayer > 0; atLayer--)
+            {
+                int beforeLayer = atLayer - 1;
+                // For every Neuron at x Layer
+                for (int atNeuron = 0; atNeuron < NeuronLayers[atLayer].Length; atNeuron++)
+                {
+                    int i = 0;
+                    // For every Neuron at x-1 Layer
+                    for (int x = 0; x < NeuronLayers[beforeLayer].Length; x++)
                     {
-                        int i = 0;
-                        for (int y = 0; y < atLayer - 1; y++)
-                            i += mLayer[y].GetCount();
-                        mDWeight[x + i][atNeuron] = (mRate * mLayer[atLayer - 1].GetSigmoide(x) * mLayer[atLayer].GetSigma(atNeuron));
+                        i = 0;
+                        for (int y = 0; y < beforeLayer; y++)
+                        {
+                            i += NeuronLayers[y].Length;
+                        }
+                        _weight.Delta[x + i][atNeuron] = (LearningRate * NeuronLayers[beforeLayer].GetSigmoide(x) * NeuronLayers[atLayer].GetSigma(atNeuron));
                     }
+                }
+            }
 
-            for (int x = 0; x < mBias.Count(); x++)
-                for (int y = 0; y < mBias[x].Count(); y++)
-                    mDBias[x][y] = (mRate * -1 * mLayer[x + 1].GetSigma(y));
+            for (int x = 0; x < _bias.Delta.Count(); x++)
+            {
+                for (int y = 0; y < _bias.Delta[x].Count(); y++)
+                {
+                    _bias.Delta[x][y] = (LearningRate * -1 * NeuronLayers[x + 1].GetSigma(y));
+                }
+            }
 
-            for (int x = 0; x < mWeight.Count(); x++)
-                for (int y = 0; y < mWeight[x].Count(); y++)
-                    mWeight[x][y] += mDWeight[x][y];
-
-            for (int x = 0; x < mBias.Count(); x++)
-                for (int y = 0; y < mBias[x].Count(); y++)
-                    mBias[x][y] += mDBias[x][y];
+            _weight.ApplyDelta();
+            _bias.ApplyDelta();
         }
     }
 }

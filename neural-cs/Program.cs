@@ -1,4 +1,6 @@
-﻿namespace NeuralNetCS
+﻿using System;
+
+namespace NeuralNetCS
 {
     struct Frases
     {
@@ -13,7 +15,7 @@
             TX1c05 = "Falso";
             TX1c10 = "########## Weight ###########";
             TX1c11 = "\n########## Bias ##########";
-            TX1c12 = "\n########## Experado ##########";
+            TX1c12 = "\n########## Esperado ##########";
             TX1c13 = "\n########## Erro ##########";
             TX1c14 = "Total:\t\t";
             TX1c15 = "Porcentagem:\t";
@@ -37,7 +39,7 @@
             Tools tools = new Tools(Tools.UseLogicGate(0, 1, 1, 0));
             tools.Learn(1000000);
             tools.PrintResult();
-            Tools.Final();
+            Tools.EnterToContinue();
         }
     }
 

@@ -5,14 +5,19 @@ namespace NeuralNetCS
     struct Neuron
     {
         // TODO: Value of what???
-        public double value;
+        public double Value;
         // TODO: What is sigma? its the same as sigmoide?
-        public double sigma;
+        public double Sigma;
     }
 
     class NeuronLayer
     {
         protected Neuron[] neurons;
+
+        public int Length
+        {
+            get { return neurons.Length; }
+        }
 
         public NeuronLayer(int nNeurons)
         {
@@ -23,35 +28,39 @@ namespace NeuralNetCS
             }
         }
 
+        // TODO: WTF is a 'Value'?
+        public void ClearValues()
+        {
+            for (int i = 0; i < neurons.Length; i++)
+            {
+                neurons[i].Value = 0;
+            }
+        }
+
+        // TODO: Tornar função reutilizável (inserir outros tipos de função)
         public virtual double GetSigmoide(int at)
         {
-            return Tools.MathSigmoide(neurons[at].value);
+            return Tools.MathSigmoide(neurons[at].Value);
         }
 
         public double GetValue(int at)
         {
-            return neurons[at].value;
+            return neurons[at].Value;
         }
 
         public double GetSigma(int at)
         {
-            return neurons[at].sigma;
-        }
-
-        // TODO: get{ Lenght }
-        public int GetCount()
-        {
-            return neurons.GetLength(0);
+            return neurons[at].Sigma;
         }
 
         public void SetValue(int at, double value)
         {
-            neurons[at].value = value;
+            neurons[at].Value = value;
         }
 
         public void SetSigma(int at, double value)
         {
-            neurons[at].sigma = value;
+            neurons[at].Sigma = value;
         }
 
         public double[] GetOutput()
@@ -60,7 +69,7 @@ namespace NeuralNetCS
             double[] r = new double[n];
             for (int i = 0; i < n; i++)
             {
-                r[i] = Tools.MathSigmoide(neurons[i].value);
+                r[i] = Tools.MathSigmoide(neurons[i].Value);
             }
             return r;
         }
@@ -72,7 +81,7 @@ namespace NeuralNetCS
 
         public override double GetSigmoide(int at)
         {
-            return neurons[at].value;
+            return neurons[at].Value;
         }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
@@ -9,55 +8,66 @@ namespace NeuralNetCS
     // This class will store helper methods
     class Tools
     {
-        private Matrix m;
+        private Matrix _network;
         private Frases msgText = new Frases(0);
+
+        public Matrix Matrix { get { return _network; } }
 
         static public double MathSigmoide(double value)
         {
             return (1 / (1 + Math.Exp(-value)));
         }
 
-        public Tools(int a, int b, int c, int d)
+        static public double[] GenerateNRandomNumbers(int n)
         {
-            m = new Matrix(a, b, c, d);
+            Random randomFactory = new Random();
+            double[] randomNumbers = new double[n];
+            for (int i = 0; i < n; i++)
+            {
+                // TODO: Verificar valores máximos ou mínimos
+                randomNumbers[i] = ((double)randomFactory.Next(-1000000, 1000001) / 1000000);
+            }
+
+            return randomNumbers;
         }
 
         public Tools(Matrix M)
         {
-            m = M;
+            _network = M;
         }
 
-        public static Matrix UseLogicGate(double ff, double ft, double tf, double tt)
+        // FF, FV, VF, VV
+        public static Matrix UseLogicGate(double falseFalse, double falseTrue, double trueFalse, double trueTrue)
         {
-            Matrix m = new Matrix(2, 1, 2, 1, 0.05);
+            Matrix network = new Matrix(2, 1, 2, 1, 0.05);
 
-            m.AddData(new List<double> { 1, 1 }, new List<double> { tt });
-            m.AddData(new List<double> { 0, 0 }, new List<double> { ff });
-            m.AddData(new List<double> { 0, 1 }, new List<double> { ft });
-            m.AddData(new List<double> { 1, 0 }, new List<double> { tf });
-            //             m.AddData(new List<double> { 1,1 },new List<double> { tt });
+            network.AddData(new double[] { 0, 0 }, new double[] { falseFalse });
+            network.AddData(new double[] { 0, 1 }, new double[] { falseTrue });
+            network.AddData(new double[] { 1, 0 }, new double[] { trueFalse });
+            network.AddData(new double[] { 1, 1 }, new double[] { trueTrue });
 
-            return m;
+            return network;
         }
 
         public int Learn(int iterations)
         {
-            if (iterations == 0)
+            if (iterations < 1)
             {
                 Console.WriteLine(msgText.ERR1c00);
                 return -1;
             }
-            if (m.Rate <= 0)
+
+            if (_network.LearningRate <= 0)
             {
                 Console.WriteLine(msgText.ERR1c01);
                 return -1;
             }
 
             Console.WriteLine(msgText.TX1c00);
-            var contador = Stopwatch.StartNew();
-            m.LearnFor(iterations);
-            contador.Stop();
-            Console.WriteLine(msgText.TX1c01 + contador.Elapsed.TotalSeconds + "s\n");
+            var timer = Stopwatch.StartNew();
+            _network.LearnFor(iterations);
+            timer.Stop();
+            Console.WriteLine(msgText.TX1c01 + timer.Elapsed.TotalSeconds + "s\n");
 
             return 0;
         }
@@ -104,7 +114,7 @@ namespace NeuralNetCS
 
         public void PrintResult()
         {
-            MatrixData tmp = m.GetAllData();
+            MatrixDataOld tmp = _network.GetAllData();
             Console.WriteLine(msgText.TX1c10);
             for (int x = 0; x < tmp.Weight.Count(); ++x)
             {
@@ -144,15 +154,10 @@ namespace NeuralNetCS
         }
         public void SetMatrix(Matrix newMatrix)
         {
-            m = newMatrix;
+            _network = newMatrix;
         }
 
-        public Matrix GetMatrix()
-        {
-            return m;
-        }
-
-        public static void Final()
+        public static void EnterToContinue()
         {
             Console.WriteLine("\n# Aperte enter para continuar...");
             Console.ReadKey();
