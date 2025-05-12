@@ -9,9 +9,14 @@ namespace NeuralNetCS
     class Layer
     {
 
-        public virtual double GetSigmo(int at)
+        public virtual double GetSigmo(uint at)
         {
             return mNeuron[at].Sigmo;
+        }
+
+        public virtual double GetSigmo(int at)
+        {
+            return GetSigmo((uint)at);
         }
 
         public double GetValue(int at)
@@ -24,7 +29,7 @@ namespace NeuralNetCS
             return mNeuron[at].Sigma;
         }
 
-        public int GetCount()
+        public uint GetCount()
         {
             return mNeuron.GetLength(0);
         }
@@ -33,16 +38,21 @@ namespace NeuralNetCS
         {
             mNeuron[at].Value = value;
         }
-        public void SetSigma(int at, double value)
+        public void SetSigma(uint at, double value)
         {
             mNeuron[at].Sigma = value;
+        }
+        public void SetSigma(int at, double value)
+        {
+            SetSigma((uint) at, value);
         }
 
         public List<double> GetOutput()
         {
             List<double> vec = new List<double>();
-            for (int x = 0;x < mNeuron.Length ;++x)
-                vec.Add(mNeuron[x].Sigmo);
+            int len = mNeuron.Length;
+            for (uint i = 0; i < len; i++)
+                vec.Add(mNeuron[i].Sigmo);
             return vec;
         }
 

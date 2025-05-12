@@ -92,45 +92,55 @@ namespace NeuralNetCS
         {
             Random rnd = new Random();
             List<double> vec = new List<double>();
-            for (int x = 0; x < i; ++x)
+            for (uint x = 0; x < i; ++x)
+                vec.Add((double)rnd.Next(-999999, 999999) / 1000000);
+            return vec;
+        }
+
+        public List<double> GenRand(uint i)
+        {
+            Random rnd = new Random();
+            List<double> vec = new List<double>();
+            for (uint x = 0; x < i; ++x)
                 vec.Add((double)rnd.Next(-999999, 999999) / 1000000);
             return vec;
         }
 
         public int AddData(List<double> mInput, List<double> mOutput)
         {
-            if (mInput.Count() != mLayer.First().GetCount() || mOutput.Count != mLayer.Last().GetCount())
+            uint nInput = mLayer.First().GetCount();
+            uint nOutput = mLayer.Last().GetCount();
+
+            if (mInput.Count() != nInput || mOutput.Count() != nOutput)
             {
                 Console.WriteLine("# ERR # OUT Invalid number of Param");
                 return -1;
             }
             else
             {
-                int nInput = mLayer.First().GetCount(),
-                    nOutput = mLayer.Last().GetCount();
                 if (mDataIn == null)
                 {
-                    if (mDataOut == null)
-                    {
-                        mDataIn = new double[1][];
-                        mDataIn[0] = new double[nInput];
-                        for (int x = 0; x < nInput; ++x)
-                            mDataIn[0][x] = mInput[x];
-                        mDataOut = new double[1][][];
-                        mDataOut[0] = new double[2][];
-                        mDataOut[0][0] = new double[nOutput];
-                        mDataOut[0][1] = new double[nOutput];
-                        for (int x = 0; x < nOutput; ++x)
-                        {
-                            mDataOut[0][0][x] = mOutput[x];
-                            mDataOut[0][1][x] = 0;
-                        }
-                        return 0;
-                    }
-                    else
+                    if (mDataOut != null)
                     {
                         return -1;
                     }
+
+                    mDataIn = new double[1][];
+                    mDataIn[0] = new double[nInput];
+                    for (int x = 0; x < nInput; ++x)
+                        mDataIn[0][x] = mInput[x];
+                    mDataOut = new double[1][][];
+                    mDataOut[0] = new double[2][];
+                    mDataOut[0][0] = new double[nOutput];
+                    mDataOut[0][1] = new double[nOutput];
+                    for (int x = 0; x < nOutput; ++x)
+                    {
+                        mDataOut[0][0][x] = mOutput[x];
+                        mDataOut[0][1][x] = 0;
+                    }
+
+                    return 0;
+                    
                 }
                 else
                 {
@@ -138,97 +148,82 @@ namespace NeuralNetCS
                     {
                         return -1;
                     }
-                    else
-                    {
-                        double[][] tmpIn = mDataIn;
-                        mDataIn = new double[tmpIn.GetLength(0) + 1][];
-                        for (int x = 0; x < tmpIn.GetLength(0) + 1; ++x)
-                            mDataIn[x] = new double[nInput];
-                        for (int x = 0; x < tmpIn.GetLength(0); ++x)
-                            for (int y = 0; y < nInput; ++y)
-                                mDataIn[x][y] = tmpIn[x][y];
-                        for (int x = 0; x < nInput; ++x)
-                            mDataIn.Last()[x] = mInput[x];
-                        Console.WriteLine();
-                        double[][][] tmpOut = mDataOut;
+ 
+                    double[][] tmpIn = mDataIn;
+                    mDataIn = new double[tmpIn.GetLength(0) + 1][];
+                    for (int x = 0; x < tmpIn.GetLength(0) + 1; ++x)
+                        mDataIn[x] = new double[nInput];
+                    for (int x = 0; x < tmpIn.GetLength(0); ++x)
+                        for (int y = 0; y < nInput; ++y)
+                            mDataIn[x][y] = tmpIn[x][y];
+                    for (int x = 0; x < nInput; ++x)
+                        mDataIn.Last()[x] = mInput[x];
+                    Console.WriteLine();
+                    double[][][] tmpOut = mDataOut;
 
-                        mDataOut = new double[tmpOut.GetLength(0) + 1][][];
-                        for(int x = 0;x < tmpOut.GetLength(0) + 1 ;++x)
-                            mDataOut[x] = new double[2][];
-                        for (int x = 0; x < tmpOut.GetLength(0) ;++x) {
-                            mDataOut[x][0] = new double[nOutput];
-                            mDataOut[x][1] = new double[nOutput];
-                        }
-                        for(int x = 0; x < tmpOut.GetLength(0);++x)
-                            for (int y = 0; y < nOutput; ++y)
-                            {
-                                mDataOut[x][0][y] = mOutput[y];
-                                mDataOut[x][1][y] = 0;
-                            }
-
-                        /*
-
-                        
-                        
-
-                        for (int x = 0; x < tmpIn.GetLength(0); ++x)
-                            for (int y = 0; y < tmpIn[x].GetLength(0);++y)
-                                mDataIn[x][y] = 
-                                mDataIn[x][y] = mInput[x];
-                        for (int x = 0;x < mInput.Count() ;++x)
-                        mDataIn[]
-
-                        mDataOut = new double[1][][];
-                        mDataOut[0] = new double[1][];
-                        mDataOut[1] = new double[1][];
-                        mDataOut[0][0] = new double[mOutput.Count()];
-                        mDataOut[0][1] = new double[mOutput.Count()];
-                        for (int x = 0; x < mDataOut.GetLength(0); ++x)
-                        {
-                            mDataOut[0][0][x] = mOutput[x];
-                            mDataOut[0][1][x] = 0;
-                        }
-
-
-
-
-
-
-
-
-
-                        mDataIn = new double[mData.GetLength(0) + 1][][];
-                        mDataIn = new double[mData.GetLength(0) + 1][][];
-
-
-                        //  mLayer.First().GetCount()][mLayer.Last().GetCount()];
-                        for (int x = 0; x <   ; ++x)
-                        {
-
-                        }
-
-                        for (int x = 0; x < tmp.GetLength(0); ++x)
-                        {
-                            for (int y = 0; y < tmp[x].getLenght(); ++y)
-                            {
-                                for (int z = 0; z < tmp[][].getLenght(); ++z)
-                                {
-                                    mData[x][y][z] = tmp;
-                                }
-                            }
-                        }
-
-                        mData.Add(new List<List<double>>());
-                        for (int x = 0; x < 3; ++x)
-                            mData.Last().Add(new List<double>());
-                        foreach (double x in mInput)
-                            mData.Last()[0].Add(x);
-                        foreach (double x in mOutput)
-                            mData.Last()[1].Add(x);
-                        for (int x = 0; x < mLayer.Last().GetCount(); ++x)
-                            mData.Last()[2].Add(0);
-                        */
+                    mDataOut = new double[tmpOut.GetLength(0) + 1][][];
+                    for(int x = 0;x < tmpOut.GetLength(0) + 1 ;++x)
+                        mDataOut[x] = new double[2][];
+                    for (int x = 0; x < tmpOut.GetLength(0) ;++x) {
+                        mDataOut[x][0] = new double[nOutput];
+                        mDataOut[x][1] = new double[nOutput];
                     }
+                    for(int x = 0; x < tmpOut.GetLength(0);++x)
+                        for (int y = 0; y < nOutput; ++y)
+                        {
+                            mDataOut[x][0][y] = mOutput[y];
+                            mDataOut[x][1][y] = 0;
+                        }
+
+                    /*
+                    for (int x = 0; x < tmpIn.GetLength(0); ++x)
+                        for (int y = 0; y < tmpIn[x].GetLength(0);++y)
+                            mDataIn[x][y] = 
+                            mDataIn[x][y] = mInput[x];
+                    for (int x = 0;x < mInput.Count() ;++x)
+                    mDataIn[]
+
+                    mDataOut = new double[1][][];
+                    mDataOut[0] = new double[1][];
+                    mDataOut[1] = new double[1][];
+                    mDataOut[0][0] = new double[mOutput.Count()];
+                    mDataOut[0][1] = new double[mOutput.Count()];
+                    for (int x = 0; x < mDataOut.GetLength(0); ++x)
+                    {
+                        mDataOut[0][0][x] = mOutput[x];
+                        mDataOut[0][1][x] = 0;
+                    }
+
+                    mDataIn = new double[mData.GetLength(0) + 1][][];
+                    mDataIn = new double[mData.GetLength(0) + 1][][];
+
+                    //  mLayer.First().GetCount()][mLayer.Last().GetCount()];
+                    for (int x = 0; x <   ; ++x)
+                    {
+
+                    }
+
+                    for (int x = 0; x < tmp.GetLength(0); ++x)
+                    {
+                        for (int y = 0; y < tmp[x].getLenght(); ++y)
+                        {
+                            for (int z = 0; z < tmp[][].getLenght(); ++z)
+                            {
+                                mData[x][y][z] = tmp;
+                            }
+                        }
+                    }
+
+                    mData.Add(new List<List<double>>());
+                    for (int x = 0; x < 3; ++x)
+                        mData.Last().Add(new List<double>());
+                    foreach (double x in mInput)
+                        mData.Last()[0].Add(x);
+                    foreach (double x in mOutput)
+                        mData.Last()[1].Add(x);
+                    for (int x = 0; x < mLayer.Last().GetCount(); ++x)
+                        mData.Last()[2].Add(0);
+                    */
                 }
             }
             return 0;
@@ -236,20 +231,21 @@ namespace NeuralNetCS
 
         public void GenP()
         {
-            int i = 0;
-            for (int x = 0; x < mLayer.GetLength(0) - 1; ++x)
-                for (int y = 0; y < mLayer[x].GetCount(); ++y)
-                    for (int z = 0; z < mLayer[x + 1].GetCount(); ++z)
-                        i++;
+            uint i = 0;
+            int nLayer = mLayer.GetLength(0);
+            for (uint x = 0; x < nLayer - 1; x++) { 
+                uint len = mLayer[x].GetCount();
+                for (uint y = 0; y < len; y++)
+                    i += mLayer[x + 1].GetCount();
+            }
 
-            for (int x = 1; x < mLayer.GetLength(0); ++x)
-                for (int y = 0; y < mLayer[x].GetCount(); ++y)
-                    i++;
+            for (uint x = 1; x < mLayer.GetLength(0); x++)
+                i += mLayer[x].GetCount();
 
             List<double> vec = GenRand(i);
 
-            for (int x = 0; x < mLayer.GetLength(0) - 1; ++x)
-                for (int y = 0; y < mLayer[x].GetCount(); ++y)
+            for (uint x = 0; x < mLayer.GetLength(0) - 1; x++)
+                for (uint y = 0; y < mLayer[x].GetCount(); y++)
                 {
                     mWeight.Add(new List<double>());
                     mDWeight.Add(new List<double>());
@@ -281,36 +277,42 @@ namespace NeuralNetCS
                     layer.SetValue(y, 0);
         }
 
-        public void LearnFor(int iterations)
+        public void LearnFor(uint iterations)
         {
             // Verify(); last list on data
             // other
-            for (int x = 0; x < iterations; ++x)
-                for (int y = 0; y < mDataIn.GetLength(0); ++y)
+            for (uint x = 0; x < iterations; x++) {
+                uint nDataIn = (uint)mDataIn.GetLength(0);
+                for (uint y = 0; y < nDataIn; y++)
                 {
                     Feedforward(mDataIn[y]);
                     Sigma(y);
                     Backpropagation();
                 }
+            }
         }
 
-        public void Sigma(int dataPosition)
+        public void Sigma(uint dataPosition)
         {
-            for (int y = 0; y < mLayer.Last().GetCount(); ++y)
+            uint nLayer = mLayer.Last().GetCount();
+            for (uint x = 0; x < nLayer; x++)
             {
-                mLayer.Last().SetSigma(y, (mLayer.Last().GetSigmo(y)) * (1 - mLayer.Last().GetSigmo(y)) * (mDataOut[dataPosition].First()[y] - mLayer.Last().GetSigmo(y)));
-                mDataOut[dataPosition].Last()[y] = mLayer.Last().GetSigmo(y);
+                double mLastLayerSigmo = mLayer.Last().GetSigmo(x);
+                mLayer.Last().SetSigma(x, mLastLayerSigmo * (1 - mLastLayerSigmo) * (mDataOut[dataPosition].First()[x] - mLastLayerSigmo));
+                mDataOut[dataPosition].Last()[x] = mLayer.Last().GetSigmo(x);
             }
+
             for (int x = (mLayer.GetLength(0) - 2); x > 0; --x)
             {
-                int i = 0;
+                uint i = 0;
                 for (int y = 0; y < x; ++y)
                     i += mLayer[y].GetCount();
 
-                for (int y = 0; y < mLayer[x].GetCount(); ++y)
+                for (uint y = 0; y < mLayer[x].GetCount(); ++y)
                 {
                     double j = 0;
-                    for (int z = 0; z < mLayer[x + 1].GetCount(); ++z)
+                    uint len = mLayer[x + 1].GetCount();
+                    for (int z = 0; z < len; z++)
                         j += mLayer[x + 1].GetSigma(z) * mWeight[i + y][z];
                     mLayer[x].SetSigma(y, mLayer[x].GetSigmo(y) * (1 - mLayer[x].GetSigmo(y)) * j);
                 }
