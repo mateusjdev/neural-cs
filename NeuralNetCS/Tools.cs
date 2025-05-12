@@ -99,6 +99,7 @@ namespace NeuralNetCS
 
         public void PrintResult()
         {
+            // TODO: Rewrite
             MatrixData tmp = m.GetAllData();
             Console.WriteLine(msgText.TX1c10);
             for (int x = 0; x < tmp.Weight.Count(); ++x)

@@ -1,0 +1,15 @@
+C:\Users\mateusjdev\Projetos\neural-cs\neural-cs\bin\Debug\net8.0\neural-cs.exe
+C:\Users\mateusjdev\Projetos\neural-cs\neural-cs\bin\Debug\net8.0\neural-cs.deps.json
+C:\Users\mateusjdev\Projetos\neural-cs\neural-cs\bin\Debug\net8.0\neural-cs.runtimeconfig.json
+C:\Users\mateusjdev\Projetos\neural-cs\neural-cs\bin\Debug\net8.0\neural-cs.dll
+C:\Users\mateusjdev\Projetos\neural-cs\neural-cs\bin\Debug\net8.0\neural-cs.pdb
+C:\Users\mateusjdev\Projetos\neural-cs\neural-cs\obj\Debug\net8.0\neural-cs.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\mateusjdev\Projetos\neural-cs\neural-cs\obj\Debug\net8.0\neural-cs.AssemblyInfoInputs.cache
+C:\Users\mateusjdev\Projetos\neural-cs\neural-cs\obj\Debug\net8.0\neural-cs.AssemblyInfo.cs
+C:\Users\mateusjdev\Projetos\neural-cs\neural-cs\obj\Debug\net8.0\neural-cs.csproj.CoreCompileInputs.cache
+C:\Users\mateusjdev\Projetos\neural-cs\neural-cs\obj\Debug\net8.0\neural-cs.sourcelink.json
+C:\Users\mateusjdev\Projetos\neural-cs\neural-cs\obj\Debug\net8.0\neural-cs.dll
+C:\Users\mateusjdev\Projetos\neural-cs\neural-cs\obj\Debug\net8.0\refint\neural-cs.dll
+C:\Users\mateusjdev\Projetos\neural-cs\neural-cs\obj\Debug\net8.0\neural-cs.pdb
+C:\Users\mateusjdev\Projetos\neural-cs\neural-cs\obj\Debug\net8.0\neural-cs.genruntimeconfig.cache
+C:\Users\mateusjdev\Projetos\neural-cs\neural-cs\obj\Debug\net8.0\ref\neural-cs.dll
