@@ -54,6 +54,17 @@ namespace NeuralNetCS
                 Values.Add(new List<double>());
                 Delta.Add(new List<double>());
             }
+
+            public void ResetDelta()
+            {
+                for (int x = 0; x < Values.Count(); x++)
+                {
+                    for (int y = 0; y < Values[x].Count(); y++)
+                    {
+                        Delta[x][y] = 0;
+                    }
+                }
+            }
         }
 
         private double[][] mDataIn;
@@ -94,7 +105,7 @@ namespace NeuralNetCS
                 mLayer[x] = new NeuronLayer(nNperHLayers);
 
             mRate = rate;
-            GenP();
+            GenerateWeightBiasValue();
         }
 
         public double[] Calculate(double[] input)
@@ -120,14 +131,7 @@ namespace NeuralNetCS
             return dat;
         }
 
-        public List<double> GenRand(int i)
-        {
-            Random rnd = new Random();
-            List<double> vec = new List<double>();
-            for (int x = 0; x < i; x++)
-                vec.Add((double)rnd.Next(-999999, 999999) / 1000000);
-            return vec;
-        }
+
 
         public int AddData(List<double> mInput, List<double> mOutput)
         {
@@ -262,19 +266,13 @@ namespace NeuralNetCS
             return 0;
         }
 
-        public void GenP()
+        const int RANDOM_VALUE_MIN = -999999;
+        const int RANDOM_VALUE_MAX = 1000000;
+        const double RANDOM_VALUE_DIV = 1000000.0;
+
+        public void GenerateWeightBiasValue()
         {
-            int i = 0;
-            for (int x = 0; x < mLayer.GetLength(0) - 1; x++)
-                for (int y = 0; y < mLayer[x].GetCount(); y++)
-                    for (int z = 0; z < mLayer[x + 1].GetCount(); ++z)
-                        i++;
-
-            for (int x = 1; x < mLayer.GetLength(0); x++)
-                for (int y = 0; y < mLayer[x].GetCount(); y++)
-                    i++;
-
-            List<double> vec = GenRand(i);
+            Random random = new Random();
 
             for (int x = 0; x < mLayer.GetLength(0) - 1; x++)
                 for (int y = 0; y < mLayer[x].GetCount(); y++)
@@ -282,22 +280,22 @@ namespace NeuralNetCS
                     _weight.AddListDouble();
                     for (int z = 0; z < mLayer[x + 1].GetCount(); ++z)
                     {
-                        _weight.Values.Last().Add(vec[0]);
-                        _weight.Delta.Last().Add(0);
-                        vec.Remove(vec.First());
+                        _weight.Values.Last().Add(random.Next(RANDOM_VALUE_MIN, RANDOM_VALUE_MAX) / RANDOM_VALUE_DIV);
                     }
                 }
+
+            _weight.ResetDelta();
 
             for (int x = 1; x < mLayer.GetLength(0); x++)
             {
                 _bias.AddListDouble();
                 for (int y = 0; y < mLayer[x].GetCount(); y++)
                 {
-                    _bias.Values.Last().Add(vec[0]);
-                    _bias.Delta.Last().Add(0);
-                    vec.Remove(vec.First());
+                    _bias.Values.Last().Add(random.Next(RANDOM_VALUE_MIN, RANDOM_VALUE_MAX) / RANDOM_VALUE_DIV);
                 }
             }
+
+            _bias.ResetDelta();
         }
 
         public void ResetHL()
