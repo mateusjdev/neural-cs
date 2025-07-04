@@ -25,7 +25,7 @@ namespace NeuralNetCS
 
         public virtual double GetSigmoide(int at)
         {
-            return Tools.MathSigmoide(neurons[at].value);
+            return CustomMath.Sigmoide(neurons[at].value);
         }
 
         public double GetValue(int at)
@@ -60,7 +60,7 @@ namespace NeuralNetCS
             double[] r = new double[n];
             for (int i = 0; i < n; i++)
             {
-                r[i] = Tools.MathSigmoide(neurons[i].value);
+                r[i] = CustomMath.Sigmoide(neurons[i].value);
             }
             return r;
         }
