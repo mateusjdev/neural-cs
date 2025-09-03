@@ -1,4 +1,5 @@
-﻿using System;
+﻿using neural_cs;
+using System;
 
 namespace NeuralNetCS
 {
@@ -36,7 +37,8 @@ namespace NeuralNetCS
     {
         static void Main(string[] args)
         {
-            Tools tools = new Tools(Tools.UseLogicGate(0, 1, 1, 0));
+            Matrix m = Factory.UseLogiGate(0, 1, 1, 0);
+            Tools tools = new Tools(m);
             tools.Learn(1000000);
             tools.PrintResult();
             Tools.Final();

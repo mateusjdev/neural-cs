@@ -17,31 +17,22 @@ namespace NeuralNetCS
             return (1 / (1 + Math.Exp(-value)));
         }
 
-        public Tools(int a, int b, int c, int d)
-        {
-            m = new Matrix(a, b, c, d);
-        }
-
         public Tools(Matrix M)
         {
             m = M;
         }
 
-        public static Matrix UseLogicGate(double ff, double ft, double tf, double tt)
+        public Matrix Matrix
         {
-            Matrix m = new Matrix(2, 1, 2, 1, 0.05);
-
-            m.AddData(new List<double> { 1, 1 }, new List<double> { tt });
-            m.AddData(new List<double> { 0, 0 }, new List<double> { ff });
-            m.AddData(new List<double> { 0, 1 }, new List<double> { ft });
-            m.AddData(new List<double> { 1, 0 }, new List<double> { tf });
-            //             m.AddData(new List<double> { 1,1 },new List<double> { tt });
-
-            return m;
+            get; set;
         }
 
         public int Learn(int iterations)
         {
+            if (Matrix == null) {
+                throw new Exception("Matrix não inicializada!");
+            }
+
             if (iterations == 0)
             {
                 Console.WriteLine(msgText.ERR1c00);
@@ -142,16 +133,7 @@ namespace NeuralNetCS
             }
             Console.WriteLine(msgText.TX1c14 + Math.Round(tot, 6) + "\n" + msgText.TX1c15 + Math.Round((100 * tot) / n, 6));
         }
-        public void SetMatrix(Matrix newMatrix)
-        {
-            m = newMatrix;
-        }
-
-        public Matrix GetMatrix()
-        {
-            return m;
-        }
-
+       
         public static void Final()
         {
             Console.WriteLine("\n# Aperte enter para continuar...");
