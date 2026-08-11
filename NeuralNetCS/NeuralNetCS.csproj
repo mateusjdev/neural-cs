@@ -45,6 +45,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Layer.cs" />
+    <Compile Include="MathUtils.cs" />
     <Compile Include="Matrix.cs" />
     <Compile Include="Neuron.cs" />
     <Compile Include="Program.cs" />

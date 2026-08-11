@@ -278,7 +278,7 @@ namespace NeuralNetCS
         {
             foreach (Layer layer in mLayer)
                 for (int y = 0; y < layer.GetCount(); ++y)
-                    layer.SetValue(y, 0);
+                    layer.SetActivationValue(y, 0);
         }
 
         public void LearnFor(int iterations)
@@ -322,15 +322,15 @@ namespace NeuralNetCS
         {
             ResetHL();
             for (int x = 0; x < mLayer.First().GetCount(); ++x)
-                mLayer.First().SetValue(x, dat[x]);
+                mLayer.First().SetActivationValue(x, dat[x]);
             int i = 0, j = 0;
             for (int x = 1; x < mLayer.GetLength(0); ++x)
             {
                 for (int y = 0; y < mLayer[x].GetCount(); ++y)
                 {
                     for (int z = 0; z < mLayer[x - 1].GetCount(); ++z)
-                        mLayer[x].SetValue(y, mLayer[x].GetValue(y) + (mLayer[x - 1].GetSigmo(z) * mWeight[z + j][y]));
-                    mLayer[x].SetValue(y, mLayer[x].GetValue(y) - mBias[x - 1][y]);
+                        mLayer[x].SetActivationValue(y, mLayer[x].GetActivationValue(y) + (mLayer[x - 1].GetSigmo(z) * mWeight[z + j][y]));
+                    mLayer[x].SetActivationValue(y, mLayer[x].GetActivationValue(y) - mBias[x - 1][y]);
                     ++i;
                 }
                 j = i;

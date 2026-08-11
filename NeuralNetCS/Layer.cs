@@ -11,17 +11,17 @@ namespace NeuralNetCS
 
         public virtual double GetSigmo(int at)
         {
-            return mNeuron[at].Sigmo;
+            return mNeuron[at].GetSigmoide();
         }
 
-        public double GetValue(int at)
+        public double GetActivationValue(int at)
         {
-            return mNeuron[at].Value;
+            return mNeuron[at].GetActivationValue();
         }
 
         public double GetSigma(int at)
         {
-            return mNeuron[at].Sigma;
+            return mNeuron[at].GetSigma();
         }
 
         public int GetCount()
@@ -29,20 +29,20 @@ namespace NeuralNetCS
             return mNeuron.GetLength(0);
         }
 
-        public void SetValue(int at, double value)
+        public void SetActivationValue(int at, double value)
         {
-            mNeuron[at].Value = value;
+            mNeuron[at].SetActivationValue(value);
         }
         public void SetSigma(int at, double value)
         {
-            mNeuron[at].Sigma = value;
+            mNeuron[at].SetSigma(value);
         }
 
         public List<double> GetOutput()
         {
             List<double> vec = new List<double>();
             for (int x = 0;x < mNeuron.Length ;++x)
-                vec.Add(mNeuron[x].Sigmo);
+                vec.Add(mNeuron[x].GetSigmoide());
             return vec;
         }
 
@@ -60,7 +60,7 @@ namespace NeuralNetCS
 
         public override double GetSigmo(int at)
         {
-            return mNeuron[at].Value;
+            return mNeuron[at].GetActivationValue();
         }
     }
 
