@@ -13,7 +13,10 @@ namespace NeuralNetCS {
     };
 
     class Matrix {
-        private double[][] mDataIn;
+        private readonly LinkedList<double[]> _trainingDataInput;
+        private readonly LinkedList<double[]> _trainingDataExpOutput;
+        private readonly double[] _lastTrainingOutput;
+
         private double[][][] mDataOut;
         private readonly NeuronMatrix _layers;
 
@@ -27,6 +30,9 @@ namespace NeuralNetCS {
             _learningRate = rate;
             _bias = new double[_layers.Count() - 1][];
             _weights = new double[_layers.Count() - 1][];
+            _trainingDataInput = new LinkedList<double[]>();
+            _trainingDataExpOutput = new LinkedList<double[]>();
+            _lastTrainingOutput = new double[nOutput];
             InitializeParameters();
         }
 
@@ -46,7 +52,7 @@ namespace NeuralNetCS {
             dat.rate = _learningRate;
             // dat.Weight = _weights;
             // dat.Bias = _bias;
-            dat.InData = mDataIn;
+            // dat.InData = mDataIn;
             dat.OutData = mDataOut;
             return dat;
         }
@@ -60,65 +66,18 @@ namespace NeuralNetCS {
             return vec;
         }
 
-        public int AddData(List<double> mInput, List<double> mOutput) {
+        public void AddTrainingData(double[] input, double[] expectedOutput) {
             int nInput = _layers.Input().GetNeuronCount();
             int nOutput = _layers.Output().GetNeuronCount();
-            if (mInput.Count() != nInput || mOutput.Count != nOutput) {
-                Console.WriteLine("# ERR # OUT Invalid number of Param");
-                return -1;
+            if (input.Length != nInput || expectedOutput.Length != nOutput) {
+                throw new InvalidOperationException("# ERR # OUT Invalid number of Param");
             }
 
-            if (mDataIn == null) {
-                if (mDataOut != null) {
-                    return -1;
-                }
+            double[] inputCopy = (double[])input.Clone();
+            _trainingDataInput.AddLast(inputCopy);
 
-                mDataIn = new double[1][];
-                mDataIn[0] = new double[nInput];
-                for (int x = 0; x < nInput; ++x)
-                    mDataIn[0][x] = mInput[x];
-                mDataOut = new double[1][][];
-                mDataOut[0] = new double[2][];
-                mDataOut[0][0] = new double[nOutput];
-                mDataOut[0][1] = new double[nOutput];
-                for (int x = 0; x < nOutput; ++x) {
-                    mDataOut[0][0][x] = mOutput[x];
-                    mDataOut[0][1][x] = 0;
-                }
-            }
-            else {
-                if (mDataOut == null) {
-                    return -1;
-                }
-
-                double[][] tmpIn = mDataIn;
-                mDataIn = new double[tmpIn.GetLength(0) + 1][];
-                for (int x = 0; x < tmpIn.GetLength(0) + 1; ++x)
-                    mDataIn[x] = new double[nInput];
-                for (int x = 0; x < tmpIn.GetLength(0); ++x)
-                    for (int y = 0; y < nInput; ++y)
-                        mDataIn[x][y] = tmpIn[x][y];
-                for (int x = 0; x < nInput; ++x)
-                    mDataIn.Last()[x] = mInput[x];
-                Console.WriteLine();
-                double[][][] tmpOut = mDataOut;
-
-                mDataOut = new double[tmpOut.GetLength(0) + 1][][];
-                for (int x = 0; x < tmpOut.GetLength(0) + 1; ++x)
-                    mDataOut[x] = new double[2][];
-                for (int x = 0; x < tmpOut.GetLength(0); ++x) {
-                    mDataOut[x][0] = new double[nOutput];
-                    mDataOut[x][1] = new double[nOutput];
-                }
-                for (int x = 0; x < tmpOut.GetLength(0); ++x) {
-                    for (int y = 0; y < nOutput; ++y) {
-                        mDataOut[x][0][y] = mOutput[y];
-                        mDataOut[x][1][y] = 0;
-                    }
-                }
-            }
-
-            return 0;
+            double[] expOutCopy = (double[])expectedOutput.Clone();
+            _trainingDataExpOutput.AddLast(expOutCopy);
         }
 
         public void InitializeParameters() {
@@ -152,20 +111,25 @@ namespace NeuralNetCS {
             }
         }
 
-        public void LearnFor(int iterations) {
-            for (int x = 0; x < iterations; ++x) {
-                for (int y = 0; y < mDataIn.GetLength(0); ++y) {
-                    Feedforward(mDataIn[y]);
-                    Sigma(y);
+        public void LearnFor(long iterations) {
+            for (long x = 0; x < iterations; ++x) {
+                for (int y = 0; y < _trainingDataInput.Count; y++) {
+                    Feedforward(_trainingDataInput.ElementAt(y));
+                    Sigma(_trainingDataExpOutput.ElementAt(y));
                     Backpropagation();
                 }
             }
         }
 
-        public void Sigma(int dataPosition) {
-            for (int y = 0; y < _layers.Output().GetNeuronCount(); ++y) {
-                _layers.Output().SetSigma(y, (_layers.Output().GetSigmoide(y)) * (1 - _layers.Output().GetSigmoide(y)) * (mDataOut[dataPosition].First()[y] - _layers.Output().GetSigmoide(y)));
-                mDataOut[dataPosition].Last()[y] = _layers.Output().GetSigmoide(y);
+        public void Sigma(double[] expectedOutput) {
+            NeuronLayer outputLayer = _layers.Output();
+            for (int neuron = 0; neuron < outputLayer.GetNeuronCount(); neuron++) {
+                double sigmoide = outputLayer.GetSigmoide(neuron);
+                double sigmoideDerrivative = sigmoide * (1 - sigmoide);
+                double outputError = (expectedOutput[neuron] - sigmoide);
+                double delta = sigmoideDerrivative * outputError;
+                outputLayer.SetSigma(neuron, delta);
+                _lastTrainingOutput[neuron] = sigmoide;
             }
             for (int x = (_layers.Count() - 2); x > 0; --x) {
                 int i = 0;
@@ -173,13 +137,16 @@ namespace NeuralNetCS {
                     i += _layers.At(y).GetNeuronCount();
 
                 for (int y = 0; y < _layers.At(x).GetNeuronCount(); ++y) {
-                    double j = 0;
-                    for (int z = 0; z < _layers.At(x + 1).GetNeuronCount(); ++z)
-                        j += _layers.At(x + 1).GetSigma(z) * _weights[i + y][z];
-                    _layers.At(x).SetSigma(y, _layers.At(x).GetSigmoide(y) * (1 - _layers.At(x).GetSigmoide(y)) * j);
+                    double outputError = 0d;
+                    for (int z = 0; z < _layers.At(x + 1).GetNeuronCount(); ++z) { 
+                        outputError += _layers.At(x + 1).GetSigma(z) * _weights[i + y][z];
+                    }
+                    double sigmoide = _layers.At(x).GetSigmoide(y);
+                    double sigmoideDerrivative = sigmoide * (1 - sigmoide);
+                    double delta = sigmoideDerrivative * outputError;
+                    _layers.At(x).SetSigma(y, delta);
                 }
             }
-
         }
 
         public void Feedforward(double[] dat) {
@@ -195,7 +162,7 @@ namespace NeuralNetCS {
                     double adjustValue = 0d;
                     int backwardLayer = nLayer - 1;
                     for (int backNeuron = 0; backNeuron < _layers.At(backwardLayer).GetNeuronCount(); ++backNeuron) {
-                        adjustValue += (_layers.At(backwardLayer).GetSigmoide(backNeuron) * _weights[backNeuron + j][nNeuron]);
+                        adjustValue += _layers.At(backwardLayer).GetSigmoide(backNeuron) * _weights[backNeuron + j][nNeuron];
                     }
                     // Bias
                     adjustValue -= _bias[backwardLayer][nNeuron];
@@ -206,13 +173,14 @@ namespace NeuralNetCS {
         }
 
         public void Backpropagation() {
-            for (int atLayer = (_layers.Count() - 1); atLayer > 0; --atLayer) { 
+            for (int atLayer = (_layers.Count() - 1); atLayer > 0; --atLayer) {
+                int backwardLayer = atLayer - 1;
                 for (int atNeuron = 0; atNeuron < _layers.At(atLayer).GetNeuronCount(); ++atNeuron) { 
-                    for (int x = 0; x < _layers.At(atLayer - 1).GetNeuronCount(); ++x) {
+                    for (int x = 0; x < _layers.At(backwardLayer).GetNeuronCount(); ++x) {
                         int i = 0;
-                        for (int y = 0; y < atLayer - 1; ++y)
+                        for (int y = 0; y < backwardLayer; ++y)
                             i += _layers.At(y).GetNeuronCount();
-                        _weights[x + i][atNeuron] = (_learningRate * _layers.At(atLayer - 1).GetSigmoide(x) * _layers.At(atLayer).GetSigma(atNeuron));
+                        _weights[x + i][atNeuron] = _learningRate * _layers.At(backwardLayer).GetSigmoide(x) * _layers.At(atLayer).GetSigma(atNeuron);
                     }
                 }
             }
