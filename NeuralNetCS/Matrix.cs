@@ -189,6 +189,15 @@ namespace NeuralNetCS {
             _learningRate = value;
             return _learningRate;
         }
+
+        public static Matrix FromLogicGates(double ff, double ft, double tf, double tt) {
+            Matrix m = new Matrix(2, 1, 2, 1, 0.05);
+            m.AddTrainingData(new double[] { 0, 0 }, new double[] { ff });
+            m.AddTrainingData(new double[] { 0, 1 }, new double[] { ft });
+            m.AddTrainingData(new double[] { 1, 0 }, new double[] { tf });
+            m.AddTrainingData(new double[] { 1, 1 }, new double[] { tt });
+            return m;
+        }
     }
 }
 
