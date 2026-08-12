@@ -103,20 +103,19 @@ namespace NeuralNetCS {
             for (long x = 0; x < iterations; ++x) {
                 for (int y = 0; y < _trainingDataInput.Count; y++) {
                     Feedforward(_trainingDataInput.ElementAt(y));
-                    Sigma(_trainingDataExpOutput.ElementAt(y));
-                    Backpropagation();
+                    Backpropagation(_trainingDataExpOutput.ElementAt(y));
                 }
             }
         }
 
-        public void Sigma(double[] expectedOutput) {
+        public void CalculateDelta(double[] expectedOutput) {
             NeuronLayer outputLayer = _layers.Output();
             for (int neuron = 0; neuron < outputLayer.GetNeuronCount(); neuron++) {
                 double activatedValue = outputLayer.GetActivationValue(neuron);
                 double sigmoideDerrivative = activatedValue * (1 - activatedValue);
                 double outputError = (expectedOutput[neuron] - activatedValue);
                 double delta = sigmoideDerrivative * outputError;
-                outputLayer.SetSigma(neuron, delta);
+                outputLayer.SetDelta(neuron, delta);
                 _lastTrainingOutput[neuron] = activatedValue;
             }
             for (int x = (_layers.Count() - 2); x > 0; --x) {
@@ -127,12 +126,12 @@ namespace NeuralNetCS {
                 for (int y = 0; y < _layers.At(x).GetNeuronCount(); ++y) {
                     double outputError = 0d;
                     for (int z = 0; z < _layers.At(x + 1).GetNeuronCount(); ++z) {
-                        outputError += _layers.At(x + 1).GetSigma(z) * _weights[i + y][z];
+                        outputError += _layers.At(x + 1).GetDelta(z) * _weights[i + y][z];
                     }
                     double activatedValue = _layers.At(x).GetActivationValue(y);
                     double sigmoideDerrivative = activatedValue * (1 - activatedValue);
                     double delta = sigmoideDerrivative * outputError;
-                    _layers.At(x).SetSigma(y, delta);
+                    _layers.At(x).SetDelta(y, delta);
                 }
             }
         }
@@ -160,7 +159,9 @@ namespace NeuralNetCS {
             }
         }
 
-        public void Backpropagation() {
+        public void Backpropagation(double[] expectedOutput) {
+            CalculateDelta(expectedOutput);
+
             for (int atLayer = (_layers.Count() - 1); atLayer > 0; --atLayer) {
                 int backwardLayer = atLayer - 1;
                 for (int atNeuron = 0; atNeuron < _layers.At(atLayer).GetNeuronCount(); ++atNeuron) { 
@@ -168,14 +169,14 @@ namespace NeuralNetCS {
                         int i = 0;
                         for (int y = 0; y < backwardLayer; ++y)
                             i += _layers.At(y).GetNeuronCount();
-                        _weights[x + i][atNeuron] = _learningRate * _layers.At(backwardLayer).GetActivationValue(x) * _layers.At(atLayer).GetSigma(atNeuron);
+                        _weights[x + i][atNeuron] = _learningRate * _layers.At(backwardLayer).GetActivationValue(x) * _layers.At(atLayer).GetDelta(atNeuron);
                     }
                 }
             }
 
             for (int x = 0; x < _bias.Count(); ++x) {
                 for (int y = 0; y < _bias[x].Count(); ++y) {
-                    _bias[x][y] = (_learningRate * -1 * _layers.At(x + 1).GetSigma(y));
+                    _bias[x][y] = (_learningRate * -1 * _layers.At(x + 1).GetDelta(y));
                 }
             }
         }

@@ -26,12 +26,12 @@
             _neurons[at].SetPreActivationValue(value);
         }
 
-        public double GetSigma(int at) {
-            return _neurons[at].GetSigma();
+        public double GetDelta(int at) {
+            return _neurons[at].GetDelta();
         }
 
-        public void SetSigma(int at, double value) {
-            _neurons[at].SetSigma(value);
+        public void SetDelta(int at, double value) {
+            _neurons[at].SetDelta(value);
         }
 
         public int GetNeuronCount() {
