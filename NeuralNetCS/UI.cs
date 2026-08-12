@@ -3,7 +3,7 @@
 namespace NeuralNetCS {
     internal static class UI {
         public static void LimparTela() {
-            throw new NotImplementedException();
+            Console.Write("\x1b[H\x1b[2J");
         }
 
         public static T MostrarMenu<T>(string[] texto, T[] opcoes) {
@@ -14,9 +14,30 @@ namespace NeuralNetCS {
                 throw new ArgumentException("");
             }
 
-            throw new NotImplementedException();
+            int quant = texto.Length;
+            bool escolhido = false;
+            int selecionado = 0;
+            do {
+                LimparTela();
+                for (int i = 0; i < texto.Length; i++) {
+                    Console.Write(texto[i]);
+                    if (i != selecionado) {
+                        Console.WriteLine();
+                    }
+                    else {
+                        Console.WriteLine(" <");
+                    }
+                }
+                var key = Console.ReadKey();
+                if (key.Key == ConsoleKey.DownArrow) {
+                    selecionado = (selecionado + 1) % quant;
+                }
+                if(key.Key == ConsoleKey.Enter) {
+                    escolhido = true;
+                }
+            } while (!escolhido);
 
-            return opcoes[0];
+            return opcoes[selecionado];
         }
 
         public static int PerguntarInt(string pergunta, int min = int.MinValue, int max = int.MaxValue) {
