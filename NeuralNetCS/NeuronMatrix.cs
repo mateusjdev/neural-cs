@@ -32,7 +32,7 @@ namespace NeuralNetCS {
             return _layers.Count;
         }
 
-        public void ResetPreActvation() {
+        public void ResetPreActivation() {
             foreach (NeuronLayer layer in _layers) {
                 layer.ResetPreActivation();
             }

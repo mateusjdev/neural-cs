@@ -126,7 +126,7 @@ namespace NeuralNetCS {
 
                 for (int y = 0; y < _layers.At(x).GetNeuronCount(); ++y) {
                     double outputError = 0d;
-                    for (int z = 0; z < _layers.At(x + 1).GetNeuronCount(); ++z) { 
+                    for (int z = 0; z < _layers.At(x + 1).GetNeuronCount(); ++z) {
                         outputError += _layers.At(x + 1).GetSigma(z) * _weights[i + y][z];
                     }
                     double activatedValue = _layers.At(x).GetActivationValue(y);
@@ -138,7 +138,7 @@ namespace NeuralNetCS {
         }
 
         public void Feedforward(double[] dat) {
-            _layers.ResetPreActvation();
+            _layers.ResetPreActivation();
             // Set Input
             for (int x = 0; x < _layers.Input().GetNeuronCount(); x++)
                 _layers.Input().SetPreActivationValue(x, dat[x]);
