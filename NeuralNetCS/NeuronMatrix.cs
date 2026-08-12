@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NeuralNetCS {
     internal class NeuronMatrix {
@@ -11,11 +8,12 @@ namespace NeuralNetCS {
         public NeuronMatrix(int nInput, int nHLayers, int nNperHLayers, int nOutput) {
             int totalLayers = nHLayers + 2;
             _layers = new List<NeuronLayer>(totalLayers) {
-                new InputNeuronLayer(nInput)
+                new NeuronLayer(nInput, EActivationFunction.Linear)
             };
-            for (int x = 1; x - 1 < nHLayers; ++x)
-                _layers.Add(new NormalNeuronLayer(nNperHLayers));
-            _layers.Add(new NormalNeuronLayer(nOutput));            
+            for (int x = 1; x - 1 < nHLayers; ++x) { 
+                _layers.Add(new NeuronLayer(nNperHLayers, EActivationFunction.Sigmoide));
+            }
+            _layers.Add(new NeuronLayer(nOutput, EActivationFunction.Sigmoide));            
         }
 
         public NeuronLayer Input() {

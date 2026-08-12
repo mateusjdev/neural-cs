@@ -124,12 +124,12 @@ namespace NeuralNetCS {
         public void Sigma(double[] expectedOutput) {
             NeuronLayer outputLayer = _layers.Output();
             for (int neuron = 0; neuron < outputLayer.GetNeuronCount(); neuron++) {
-                double sigmoide = outputLayer.GetSigmoide(neuron);
-                double sigmoideDerrivative = sigmoide * (1 - sigmoide);
-                double outputError = (expectedOutput[neuron] - sigmoide);
+                double activatedValue = outputLayer.GetActivationValue(neuron);
+                double sigmoideDerrivative = activatedValue * (1 - activatedValue);
+                double outputError = (expectedOutput[neuron] - activatedValue);
                 double delta = sigmoideDerrivative * outputError;
                 outputLayer.SetSigma(neuron, delta);
-                _lastTrainingOutput[neuron] = sigmoide;
+                _lastTrainingOutput[neuron] = activatedValue;
             }
             for (int x = (_layers.Count() - 2); x > 0; --x) {
                 int i = 0;
@@ -141,8 +141,8 @@ namespace NeuralNetCS {
                     for (int z = 0; z < _layers.At(x + 1).GetNeuronCount(); ++z) { 
                         outputError += _layers.At(x + 1).GetSigma(z) * _weights[i + y][z];
                     }
-                    double sigmoide = _layers.At(x).GetSigmoide(y);
-                    double sigmoideDerrivative = sigmoide * (1 - sigmoide);
+                    double activatedValue = _layers.At(x).GetActivationValue(y);
+                    double sigmoideDerrivative = activatedValue * (1 - activatedValue);
                     double delta = sigmoideDerrivative * outputError;
                     _layers.At(x).SetSigma(y, delta);
                 }
@@ -162,7 +162,7 @@ namespace NeuralNetCS {
                     double adjustValue = 0d;
                     int backwardLayer = nLayer - 1;
                     for (int backNeuron = 0; backNeuron < _layers.At(backwardLayer).GetNeuronCount(); ++backNeuron) {
-                        adjustValue += _layers.At(backwardLayer).GetSigmoide(backNeuron) * _weights[backNeuron + j][nNeuron];
+                        adjustValue += _layers.At(backwardLayer).GetActivationValue(backNeuron) * _weights[backNeuron + j][nNeuron];
                     }
                     // Bias
                     adjustValue -= _bias[backwardLayer][nNeuron];
@@ -180,7 +180,7 @@ namespace NeuralNetCS {
                         int i = 0;
                         for (int y = 0; y < backwardLayer; ++y)
                             i += _layers.At(y).GetNeuronCount();
-                        _weights[x + i][atNeuron] = _learningRate * _layers.At(backwardLayer).GetSigmoide(x) * _layers.At(atLayer).GetSigma(atNeuron);
+                        _weights[x + i][atNeuron] = _learningRate * _layers.At(backwardLayer).GetActivationValue(x) * _layers.At(atLayer).GetSigma(atNeuron);
                     }
                 }
             }
