@@ -6,39 +6,51 @@ using System.Text;
 using System.Threading.Tasks;
 
 
-namespace NeuralNetCS {
-    enum OpcoesMenu {
+namespace NeuralNetCS
+{
+    enum OpcoesMenu
+    {
         InicializarCustom,
+        InicializarClassificadorDirecional,
         InicializarLogicGate,
         Treinar,
         ImprimirInformacoes,
+        Testar,
         Sair
     }
 
-    class Program {
+    class Program
+    {
         private static bool _rodando = true;
         private static Network _network;
 
-        public static OpcoesMenu Menu() {
+        public static OpcoesMenu Menu()
+        {
             string[] opcoes = new string[] {
                 "Inicializar Rede com parametros",
+                "Inicializar Rede de classificação direcional",
                 "Inicializar Rede com gates lógicos",
                 "Inicializar Treino",
                 "Imprimir Informações",
+                "Testar",
                 "Sair"
             };
             OpcoesMenu[] valores = new OpcoesMenu[] {
                 OpcoesMenu.InicializarCustom,
+                OpcoesMenu.InicializarClassificadorDirecional,
                 OpcoesMenu.InicializarLogicGate,
                 OpcoesMenu.Treinar,
                 OpcoesMenu.ImprimirInformacoes,
+                OpcoesMenu.Testar,
                 OpcoesMenu.Sair
             };
             return UI.MostrarMenu(opcoes, valores);
         }
 
-        public static void Treinar() {
-            if (_network == null) {
+        public static void Treinar()
+        {
+            if (_network == null)
+            {
                 throw new InvalidOperationException("A rede não foi inicializada!");
             }
             int iteracoes = UI.PerguntarInt("Digite o número de iterações: ", 0);
@@ -56,6 +68,27 @@ namespace NeuralNetCS {
         {
             UI.LimparTela();
             Console.WriteLine(_network.ToString());
+        }
+
+        public static void Testar()
+        {
+            // obter quantidade de entradas
+            int quantidadeEntradas = _network.GetInputSize();
+            // ler entradas
+            int index = 0;
+            double[] entradas = new double[quantidadeEntradas];
+            for (int i = 0; i < entradas.Length; i++)
+            {
+                entradas[i] = UI.PerguntarDouble($"Digite o {index}º valor de entrada (double): ");
+            }
+            // executar rede
+            double[] saida = _network.Calculate(entradas);
+            // imprimir saidas
+            Console.WriteLine("##### Saida #####");
+            for (int i = 0; i < saida.Length; i++)
+            {
+                Console.WriteLine($"i[{i}]: {saida[i]}");
+            }
         }
 
         /*
@@ -103,15 +136,42 @@ namespace NeuralNetCS {
        }
        */
 
-        public static void InicializarLogicGate() {
+        public static void InicializarLogicGate()
+        {
             _network = Network.FromLogicGates(0, 1, 1, 0);
         }
 
-        static void Main() {
-            while (_rodando) {
+        public static void InicializarClassificadorDirecional()
+        {
+            _network = new Network(4, 3, 4, 4);
+            // Blank
+            _network.AddTrainingData(new double[] { 0, 0, 0, 0 }, new double[] { 1, 0, 0, 0 });
+            _network.AddTrainingData(new double[] { 1, 1, 1, 1 }, new double[] { 1, 0, 0, 0 });
+            // Horizontal
+            _network.AddTrainingData(new double[] { 1, 1, 0, 0 }, new double[] { 0, 1, 0, 0 });
+            _network.AddTrainingData(new double[] { 0, 0, 1, 1 }, new double[] { 0, 1, 0, 0 });
+            // Vertical
+            _network.AddTrainingData(new double[] { 1, 0, 1, 0 }, new double[] { 0, 0, 1, 0 });
+            _network.AddTrainingData(new double[] { 0, 1, 0, 1 }, new double[] { 0, 0, 1, 0 });
+            // Diagonal
+            _network.AddTrainingData(new double[] { 0, 1, 1, 0 }, new double[] { 0, 0, 0, 1 });
+            _network.AddTrainingData(new double[] { 1, 0, 0, 1 }, new double[] { 0, 0, 0, 1 });
+
+        }
+
+        static void Main()
+        {
+            while (_rodando)
+            {
                 OpcoesMenu escolhido = Menu();
-                switch (escolhido) {
+                switch (escolhido)
+                {
                     case OpcoesMenu.InicializarCustom:
+                        UI.AperteQualquerTecla();
+                        UI.LimparTela();
+                        break;
+                    case OpcoesMenu.InicializarClassificadorDirecional:
+                        InicializarClassificadorDirecional();
                         UI.AperteQualquerTecla();
                         UI.LimparTela();
                         break;
@@ -130,8 +190,18 @@ namespace NeuralNetCS {
                         UI.AperteQualquerTecla();
                         UI.LimparTela();
                         break;
+                    case OpcoesMenu.Testar:
+                        Testar();
+                        UI.AperteQualquerTecla();
+                        UI.LimparTela();
+                        break;
                     case OpcoesMenu.Sair:
                         _rodando = false;
+                        UI.AperteQualquerTecla();
+                        UI.LimparTela();
+                        break;
+                    default:
+                        Console.WriteLine("Operação não implementada.");
                         UI.AperteQualquerTecla();
                         UI.LimparTela();
                         break;

@@ -63,7 +63,7 @@ namespace NeuralNetCS
                 int iLayerSize = _layers.At(backwardLayer).GetNeuronCount();
                 int jLayerSize = _layers.At(backwardLayer + 1).GetNeuronCount();
                 _weight[backwardLayer] = new double[iLayerSize, jLayerSize];
-                double limit = Math.Sqrt(6 / (iLayerSize + jLayerSize));
+                double limit = Math.Sqrt(6.0 / (iLayerSize + jLayerSize));
                 for (int iNeuron = 0; iNeuron < iLayerSize; ++iNeuron)
                 {
                     for (int jNeuron = 0; jNeuron < jLayerSize; ++jNeuron)
@@ -238,6 +238,11 @@ namespace NeuralNetCS
             // stringBuilder.AppendLine("########## Esperado ##########");
             // TODO: Mostrar entradas, saídas e margens de erro
             return stringBuilder.ToString();
+        }
+
+        public int GetInputSize()
+        {
+            return _layers.Input().GetNeuronCount();
         }
     }
 }
