@@ -18,15 +18,15 @@ namespace NeuralNetCS {
         private readonly NeuronMatrix _layers;
 
         private readonly double[][] _bias;
+        private readonly double[][] _weights;
 
-        private readonly List<List<double>> _weights = new List<List<double>>();
-        private readonly List<List<double>> mDWeight = new List<List<double>>();
         private double _learningRate;
 
         public Matrix(int nInput, int nHLayers, int nNperHLayers, int nOutput, double rate = 0.1) {
             _layers = new NeuronMatrix(nInput, nHLayers, nNperHLayers, nOutput);
             _learningRate = rate;
             _bias = new double[_layers.Count() - 1][];
+            _weights = new double[_layers.Count() - 1][];
             InitializeParameters();
         }
 
@@ -44,7 +44,7 @@ namespace NeuralNetCS {
                 dat.nOutput = _layers.Output().GetNeuronCount();
             }
             dat.rate = _learningRate;
-            dat.Weight = _weights;
+            // dat.Weight = _weights;
             // dat.Bias = _bias;
             dat.InData = mDataIn;
             dat.OutData = mDataOut;
@@ -134,18 +134,18 @@ namespace NeuralNetCS {
 
             for (int x = 0; x < _layers.Count() - 1; ++x) {
                 for (int y = 0; y < _layers.At(x).GetNeuronCount(); ++y) {
-                    _weights.Add(new List<double>());
-                    mDWeight.Add(new List<double>());
-                    for (int z = 0; z < _layers.At(x + 1).GetNeuronCount(); ++z) {
-                        _weights.Last().Add(vec.Pop());
-                        mDWeight.Last().Add(0);
+                    int weightPerLayer = _layers.At(x).GetNeuronCount() * _layers.At(x + 1).GetNeuronCount();
+                    _weights[x] = new double[weightPerLayer];
+                    for (int j = 0; j < _weights.Length; j++) {
+                        _weights[x][j] = vec.Pop();
                     }
                 }
             }
 
             for (int x = 1; x < _layers.Count(); ++x) {
                 int pos = x - 1;
-                _bias[pos] = new double[_layers.At(x).GetNeuronCount()];
+                int biasPerLayer = _layers.At(x).GetNeuronCount();
+                _bias[pos] = new double[biasPerLayer];
                 for (int y = 0; y < _bias[pos].Length; y++) {
                     _bias[pos][y] = vec.Pop();
                 }
@@ -206,18 +206,16 @@ namespace NeuralNetCS {
         }
 
         public void Backpropagation() {
-            for (int atLayer = (_layers.Count() - 1); atLayer > 0; --atLayer)
-                for (int atNeuron = 0; atNeuron < _layers.At(atLayer).GetNeuronCount(); ++atNeuron)
+            for (int atLayer = (_layers.Count() - 1); atLayer > 0; --atLayer) { 
+                for (int atNeuron = 0; atNeuron < _layers.At(atLayer).GetNeuronCount(); ++atNeuron) { 
                     for (int x = 0; x < _layers.At(atLayer - 1).GetNeuronCount(); ++x) {
                         int i = 0;
                         for (int y = 0; y < atLayer - 1; ++y)
                             i += _layers.At(y).GetNeuronCount();
-                        mDWeight[x + i][atNeuron] = (_learningRate * _layers.At(atLayer - 1).GetSigmoide(x) * _layers.At(atLayer).GetSigma(atNeuron));
+                        _weights[x + i][atNeuron] = (_learningRate * _layers.At(atLayer - 1).GetSigmoide(x) * _layers.At(atLayer).GetSigma(atNeuron));
                     }
-
-            for (int x = 0; x < _weights.Count(); ++x)
-                for (int y = 0; y < _weights[x].Count(); ++y)
-                    _weights[x][y] += mDWeight[x][y];
+                }
+            }
 
             for (int x = 0; x < _bias.Count(); ++x) {
                 for (int y = 0; y < _bias[x].Count(); ++y) {
