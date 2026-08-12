@@ -17,6 +17,8 @@ namespace NeuralNetCS {
         private readonly LinkedList<double[]> _trainingDataExpOutput;
         private readonly double[] _lastTrainingOutput;
 
+        private const double InitialBias = 0.01d;
+
         private double[][][] mDataOut;
         private readonly NeuronMatrix _layers;
 
@@ -57,15 +59,6 @@ namespace NeuralNetCS {
             return dat;
         }
 
-        public Stack<double> GenRand(int i) {
-            Random random = new Random();
-            Stack<double> vec = new Stack<double>(i);
-            for (int x = 0; x < i; ++x) {
-                vec.Push(random.Next(-999999, 999999) / 1000000.0);
-            }
-            return vec;
-        }
-
         public void AddTrainingData(double[] input, double[] expectedOutput) {
             int nInput = _layers.Input().GetNeuronCount();
             int nOutput = _layers.Output().GetNeuronCount();
@@ -81,22 +74,17 @@ namespace NeuralNetCS {
         }
 
         public void InitializeParameters() {
-            int i = 0;
-            for (int x = 0; x < _layers.Count() - 1; ++x)
-                for (int y = 0; y < _layers.At(x).GetNeuronCount(); ++y)
-                    i += _layers.At(x + 1).GetNeuronCount();
-
-            for (int x = 1; x < _layers.Count(); ++x)
-                i += _layers.At(x).GetNeuronCount();
-
-            Stack<double> vec = GenRand(i);
+            Random random = new Random();
 
             for (int x = 0; x < _layers.Count() - 1; ++x) {
                 for (int y = 0; y < _layers.At(x).GetNeuronCount(); ++y) {
                     int weightPerLayer = _layers.At(x).GetNeuronCount() * _layers.At(x + 1).GetNeuronCount();
                     _weights[x] = new double[weightPerLayer];
+                    int nIn = _layers.At(x).GetNeuronCount();
+                    int nOut = _layers.At(x + 1).GetNeuronCount();
+                    double limit = Math.Sqrt(6 / (nIn + nOut));
                     for (int j = 0; j < _weights.Length; j++) {
-                        _weights[x][j] = vec.Pop();
+                        _weights[x][j] = (random.NextDouble() * 2 - 1) * limit;
                     }
                 }
             }
@@ -106,7 +94,7 @@ namespace NeuralNetCS {
                 int biasPerLayer = _layers.At(x).GetNeuronCount();
                 _bias[pos] = new double[biasPerLayer];
                 for (int y = 0; y < _bias[pos].Length; y++) {
-                    _bias[pos][y] = vec.Pop();
+                    _bias[pos][y] = InitialBias;
                 }
             }
         }
