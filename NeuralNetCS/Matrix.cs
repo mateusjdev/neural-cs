@@ -17,15 +17,16 @@ namespace NeuralNetCS {
         private double[][][] mDataOut;
         private readonly NeuronMatrix _layers;
 
+        private readonly double[][] _bias;
+
         private readonly List<List<double>> _weights = new List<List<double>>();
         private readonly List<List<double>> mDWeight = new List<List<double>>();
-        private readonly List<List<double>> _bias = new List<List<double>>();
-        private readonly List<List<double>> mDBias = new List<List<double>>();
         private double _learningRate;
 
         public Matrix(int nInput, int nHLayers, int nNperHLayers, int nOutput, double rate = 0.1) {
             _layers = new NeuronMatrix(nInput, nHLayers, nNperHLayers, nOutput);
             _learningRate = rate;
+            _bias = new double[_layers.Count() - 1][];
             InitializeParameters();
         }
 
@@ -44,17 +45,17 @@ namespace NeuralNetCS {
             }
             dat.rate = _learningRate;
             dat.Weight = _weights;
-            dat.Bias = _bias;
+            // dat.Bias = _bias;
             dat.InData = mDataIn;
             dat.OutData = mDataOut;
             return dat;
         }
 
-        public List<double> GenRand(int i) {
-            Random rnd = new Random();
-            List<double> vec = new List<double>();
+        public Stack<double> GenRand(int i) {
+            Random random = new Random();
+            Stack<double> vec = new Stack<double>(i);
             for (int x = 0; x < i; ++x) {
-                vec.Add(rnd.Next(-999999, 999999) / 1000000.0);
+                vec.Push(random.Next(-999999, 999999) / 1000000.0);
             }
             return vec;
         }
@@ -129,26 +130,24 @@ namespace NeuralNetCS {
             for (int x = 1; x < _layers.Count(); ++x)
                 i += _layers.At(x).GetNeuronCount();
 
-            List<double> vec = GenRand(i);
+            Stack<double> vec = GenRand(i);
 
-            for (int x = 0; x < _layers.Count() - 1; ++x)
+            for (int x = 0; x < _layers.Count() - 1; ++x) {
                 for (int y = 0; y < _layers.At(x).GetNeuronCount(); ++y) {
                     _weights.Add(new List<double>());
                     mDWeight.Add(new List<double>());
                     for (int z = 0; z < _layers.At(x + 1).GetNeuronCount(); ++z) {
-                        _weights.Last().Add(vec[0]);
-                        vec.Remove(vec.First());
+                        _weights.Last().Add(vec.Pop());
                         mDWeight.Last().Add(0);
                     }
                 }
+            }
 
             for (int x = 1; x < _layers.Count(); ++x) {
-                _bias.Add(new List<double>());
-                mDBias.Add(new List<double>());
-                for (int y = 0; y < _layers.At(x).GetNeuronCount(); ++y) {
-                    _bias.Last().Add(vec[0]);
-                    vec.Remove(vec.First());
-                    mDBias.Last().Add(0);
+                int pos = x - 1;
+                _bias[pos] = new double[_layers.At(x).GetNeuronCount()];
+                for (int y = 0; y < _bias[pos].Length; y++) {
+                    _bias[pos][y] = vec.Pop();
                 }
             }
         }
@@ -216,17 +215,15 @@ namespace NeuralNetCS {
                         mDWeight[x + i][atNeuron] = (_learningRate * _layers.At(atLayer - 1).GetSigmoide(x) * _layers.At(atLayer).GetSigma(atNeuron));
                     }
 
-            for (int x = 0; x < _bias.Count(); ++x)
-                for (int y = 0; y < _bias[x].Count(); ++y)
-                    mDBias[x][y] = (_learningRate * -1 * _layers.At(x + 1).GetSigma(y));
-
             for (int x = 0; x < _weights.Count(); ++x)
                 for (int y = 0; y < _weights[x].Count(); ++y)
                     _weights[x][y] += mDWeight[x][y];
 
-            for (int x = 0; x < _bias.Count(); ++x)
-                for (int y = 0; y < _bias[x].Count(); ++y)
-                    _bias[x][y] += mDBias[x][y];
+            for (int x = 0; x < _bias.Count(); ++x) {
+                for (int y = 0; y < _bias[x].Count(); ++y) {
+                    _bias[x][y] = (_learningRate * -1 * _layers.At(x + 1).GetSigma(y));
+                }
+            }
         }
 
         public double GetLearningRate() {
