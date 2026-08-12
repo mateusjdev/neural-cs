@@ -42,7 +42,8 @@ namespace NeuralNetCS
                 Console.WriteLine(msgText.ERR1c00);
                 return -1;
             }
-            if (m.Rate <= 0)
+
+            if (m.GetLearningRate() <= 0)
             {
                 Console.WriteLine(msgText.ERR1c01);
                 return -1;

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NeuralNetCS
 {
@@ -12,11 +10,6 @@ namespace NeuralNetCS
         public double rate;
         public List<List<double>> Weight;
         public List<List<double>> Bias;
-        // public List<List<List<double>>> Data;
-
-        // public double[,] Weight;
-        // public double[,] Bias;
-
         public double[][] InData;
         public double[][][] OutData;
     };
@@ -25,62 +18,44 @@ namespace NeuralNetCS
     {
         private double[][] mDataIn;
         private double[][][] mDataOut;
-        // private double[,] mWeight;
-        // private double[,] mDWeight;
-        // private double[,] mBias;
-        // private double[,] mDBias;
-        private NeuronLayer[] mLayer;
+        private NeuronLayer[] _layers;
 
         private List<List<double>> mWeight = new List<List<double>>();
         private List<List<double>> mDWeight = new List<List<double>>();
         private List<List<double>> mBias = new List<List<double>>();
         private List<List<double>> mDBias = new List<List<double>>();
-        // private List<List<List<double>>> mData = new List<List<List<double>>>();
-        // private List<Layer> mLayer = new List<Layer>();
-        private double mRate;
-        private Frases msgText = new Frases(0);
-
-        public double Rate
-        {
-            get { return mRate; }
-            set { mRate = value; }
-        }
-
-        public Matrix() { }
+        private double _learningRate;
 
         public Matrix(int nInput, int nHLayers, int nNperHLayers, int nOutput, double rate = 0.1)
         {
-            mLayer = new NeuronLayer[nHLayers + 2];
+            _layers = new NeuronLayer[nHLayers + 2];
 
-            mLayer[0] = new InputNeuronLayer(nInput);
-            mLayer[mLayer.GetLength(0) - 1] = new NormalNeuronLayer(nOutput);
+            _layers[0] = new InputNeuronLayer(nInput);
+            _layers[_layers.GetLength(0) - 1] = new NormalNeuronLayer(nOutput);
 
             for (int x = 1; x - 1 < nHLayers; ++x)
-                mLayer[x] = new NormalNeuronLayer(nNperHLayers);
+                _layers[x] = new NormalNeuronLayer(nNperHLayers);
 
-            mRate = rate;
-            GenP();
+            _learningRate = rate;
+            InitializeParameters();
         }
-
-        //public Matrix(MatrixData mMatrix){}
 
         public double[] Calculate(double[] input)
         {
-
             Feedforward(input);
-            return mLayer.Last().GetOutput();
+            return _layers.Last().GetOutput();
         }
 
         public MatrixData GetAllData()
         {
             MatrixData dat = new MatrixData();
             {
-                dat.nInput = mLayer.First().GetNeuronCount();
-                dat.nHLayers = (mLayer.GetLength(0) - 2);
-                dat.nNperHLayers = mLayer[1].GetNeuronCount();
-                dat.nOutput = mLayer.Last().GetNeuronCount();
+                dat.nInput = _layers.First().GetNeuronCount();
+                dat.nHLayers = (_layers.GetLength(0) - 2);
+                dat.nNperHLayers = _layers[1].GetNeuronCount();
+                dat.nOutput = _layers.Last().GetNeuronCount();
             }
-            dat.rate = mRate;
+            dat.rate = _learningRate;
             dat.Weight = mWeight;
             dat.Bias = mBias;
             dat.InData = mDataIn;
@@ -92,169 +67,101 @@ namespace NeuralNetCS
         {
             Random rnd = new Random();
             List<double> vec = new List<double>();
-            for (int x = 0; x < i; ++x)
-                vec.Add((double)rnd.Next(-999999, 999999) / 1000000);
+            for (int x = 0; x < i; ++x) { 
+                vec.Add(rnd.Next(-999999, 999999) / 1000000.0);
+            }
             return vec;
         }
 
         public int AddData(List<double> mInput, List<double> mOutput)
         {
-            if (mInput.Count() != mLayer.First().GetNeuronCount() || mOutput.Count != mLayer.Last().GetNeuronCount())
+            int nInput = _layers.First().GetNeuronCount();
+            int nOutput = _layers.Last().GetNeuronCount();
+            if (mInput.Count() != nInput || mOutput.Count != nOutput)
             {
                 Console.WriteLine("# ERR # OUT Invalid number of Param");
                 return -1;
             }
+
+            if (mDataIn == null)
+            {
+                if (mDataOut != null)
+                {
+                    return -1;
+                }
+
+                mDataIn = new double[1][];
+                mDataIn[0] = new double[nInput];
+                for (int x = 0; x < nInput; ++x)
+                    mDataIn[0][x] = mInput[x];
+                mDataOut = new double[1][][];
+                mDataOut[0] = new double[2][];
+                mDataOut[0][0] = new double[nOutput];
+                mDataOut[0][1] = new double[nOutput];
+                for (int x = 0; x < nOutput; ++x)
+                {
+                    mDataOut[0][0][x] = mOutput[x];
+                    mDataOut[0][1][x] = 0;
+                }
+            }
             else
             {
-                int nInput = mLayer.First().GetNeuronCount(),
-                    nOutput = mLayer.Last().GetNeuronCount();
-                if (mDataIn == null)
+                if (mDataOut == null)
                 {
-                    if (mDataOut == null)
-                    {
-                        mDataIn = new double[1][];
-                        mDataIn[0] = new double[nInput];
-                        for (int x = 0; x < nInput; ++x)
-                            mDataIn[0][x] = mInput[x];
-                        mDataOut = new double[1][][];
-                        mDataOut[0] = new double[2][];
-                        mDataOut[0][0] = new double[nOutput];
-                        mDataOut[0][1] = new double[nOutput];
-                        for (int x = 0; x < nOutput; ++x)
-                        {
-                            mDataOut[0][0][x] = mOutput[x];
-                            mDataOut[0][1][x] = 0;
-                        }
-                        return 0;
-                    }
-                    else
-                    {
-                        return -1;
-                    }
+                    return -1;
                 }
-                else
+
+                double[][] tmpIn = mDataIn;
+                mDataIn = new double[tmpIn.GetLength(0) + 1][];
+                for (int x = 0; x < tmpIn.GetLength(0) + 1; ++x)
+                    mDataIn[x] = new double[nInput];
+                for (int x = 0; x < tmpIn.GetLength(0); ++x)
+                    for (int y = 0; y < nInput; ++y)
+                        mDataIn[x][y] = tmpIn[x][y];
+                for (int x = 0; x < nInput; ++x)
+                    mDataIn.Last()[x] = mInput[x];
+                Console.WriteLine();
+                double[][][] tmpOut = mDataOut;
+
+                mDataOut = new double[tmpOut.GetLength(0) + 1][][];
+                for (int x = 0; x < tmpOut.GetLength(0) + 1; ++x)
+                    mDataOut[x] = new double[2][];
+                for (int x = 0; x < tmpOut.GetLength(0); ++x)
                 {
-                    if (mDataOut == null)
+                    mDataOut[x][0] = new double[nOutput];
+                    mDataOut[x][1] = new double[nOutput];
+                }
+                for (int x = 0; x < tmpOut.GetLength(0); ++x)
+                {
+                    for (int y = 0; y < nOutput; ++y)
                     {
-                        return -1;
-                    }
-                    else
-                    {
-                        double[][] tmpIn = mDataIn;
-                        mDataIn = new double[tmpIn.GetLength(0) + 1][];
-                        for (int x = 0; x < tmpIn.GetLength(0) + 1; ++x)
-                            mDataIn[x] = new double[nInput];
-                        for (int x = 0; x < tmpIn.GetLength(0); ++x)
-                            for (int y = 0; y < nInput; ++y)
-                                mDataIn[x][y] = tmpIn[x][y];
-                        for (int x = 0; x < nInput; ++x)
-                            mDataIn.Last()[x] = mInput[x];
-                        Console.WriteLine();
-                        double[][][] tmpOut = mDataOut;
-
-                        mDataOut = new double[tmpOut.GetLength(0) + 1][][];
-                        for (int x = 0; x < tmpOut.GetLength(0) + 1; ++x)
-                            mDataOut[x] = new double[2][];
-                        for (int x = 0; x < tmpOut.GetLength(0); ++x)
-                        {
-                            mDataOut[x][0] = new double[nOutput];
-                            mDataOut[x][1] = new double[nOutput];
-                        }
-                        for (int x = 0; x < tmpOut.GetLength(0); ++x)
-                            for (int y = 0; y < nOutput; ++y)
-                            {
-                                mDataOut[x][0][y] = mOutput[y];
-                                mDataOut[x][1][y] = 0;
-                            }
-
-                        /*
-
-                        
-                        
-
-                        for (int x = 0; x < tmpIn.GetLength(0); ++x)
-                            for (int y = 0; y < tmpIn[x].GetLength(0);++y)
-                                mDataIn[x][y] = 
-                                mDataIn[x][y] = mInput[x];
-                        for (int x = 0;x < mInput.Count() ;++x)
-                        mDataIn[]
-
-                        mDataOut = new double[1][][];
-                        mDataOut[0] = new double[1][];
-                        mDataOut[1] = new double[1][];
-                        mDataOut[0][0] = new double[mOutput.Count()];
-                        mDataOut[0][1] = new double[mOutput.Count()];
-                        for (int x = 0; x < mDataOut.GetLength(0); ++x)
-                        {
-                            mDataOut[0][0][x] = mOutput[x];
-                            mDataOut[0][1][x] = 0;
-                        }
-
-
-
-
-
-
-
-
-
-                        mDataIn = new double[mData.GetLength(0) + 1][][];
-                        mDataIn = new double[mData.GetLength(0) + 1][][];
-
-
-                        //  mLayer.First().GetCount()][mLayer.Last().GetCount()];
-                        for (int x = 0; x <   ; ++x)
-                        {
-
-                        }
-
-                        for (int x = 0; x < tmp.GetLength(0); ++x)
-                        {
-                            for (int y = 0; y < tmp[x].getLenght(); ++y)
-                            {
-                                for (int z = 0; z < tmp[][].getLenght(); ++z)
-                                {
-                                    mData[x][y][z] = tmp;
-                                }
-                            }
-                        }
-
-                        mData.Add(new List<List<double>>());
-                        for (int x = 0; x < 3; ++x)
-                            mData.Last().Add(new List<double>());
-                        foreach (double x in mInput)
-                            mData.Last()[0].Add(x);
-                        foreach (double x in mOutput)
-                            mData.Last()[1].Add(x);
-                        for (int x = 0; x < mLayer.Last().GetCount(); ++x)
-                            mData.Last()[2].Add(0);
-                        */
+                        mDataOut[x][0][y] = mOutput[y];
+                        mDataOut[x][1][y] = 0;
                     }
                 }
             }
+
             return 0;
         }
 
-        public void GenP()
+        public void InitializeParameters()
         {
             int i = 0;
-            for (int x = 0; x < mLayer.GetLength(0) - 1; ++x)
-                for (int y = 0; y < mLayer[x].GetNeuronCount(); ++y)
-                    for (int z = 0; z < mLayer[x + 1].GetNeuronCount(); ++z)
-                        i++;
+            for (int x = 0; x < _layers.GetLength(0) - 1; ++x)
+                for (int y = 0; y < _layers[x].GetNeuronCount(); ++y)
+                    i += _layers[x + 1].GetNeuronCount();
 
-            for (int x = 1; x < mLayer.GetLength(0); ++x)
-                for (int y = 0; y < mLayer[x].GetNeuronCount(); ++y)
-                    i++;
+            for (int x = 1; x < _layers.GetLength(0); ++x)
+                i+= _layers[x].GetNeuronCount();
 
             List<double> vec = GenRand(i);
 
-            for (int x = 0; x < mLayer.GetLength(0) - 1; ++x)
-                for (int y = 0; y < mLayer[x].GetNeuronCount(); ++y)
+            for (int x = 0; x < _layers.GetLength(0) - 1; ++x)
+                for (int y = 0; y < _layers[x].GetNeuronCount(); ++y)
                 {
                     mWeight.Add(new List<double>());
                     mDWeight.Add(new List<double>());
-                    for (int z = 0; z < mLayer[x + 1].GetNeuronCount(); ++z)
+                    for (int z = 0; z < _layers[x + 1].GetNeuronCount(); ++z)
                     {
                         mWeight.Last().Add(vec[0]);
                         vec.Remove(vec.First());
@@ -262,11 +169,11 @@ namespace NeuralNetCS
                     }
                 }
 
-            for (int x = 1; x < mLayer.GetLength(0); ++x)
+            for (int x = 1; x < _layers.GetLength(0); ++x)
             {
                 mBias.Add(new List<double>());
                 mDBias.Add(new List<double>());
-                for (int y = 0; y < mLayer[x].GetNeuronCount(); ++y)
+                for (int y = 0; y < _layers[x].GetNeuronCount(); ++y)
                 {
                     mBias.Last().Add(vec[0]);
                     vec.Remove(vec.First());
@@ -277,43 +184,44 @@ namespace NeuralNetCS
 
         public void ResetHL()
         {
-            foreach (NeuronLayer layer in mLayer) { 
+            foreach (NeuronLayer layer in _layers)
+            {
                 layer.ResetActivation();
             }
         }
 
         public void LearnFor(int iterations)
         {
-            // Verify(); last list on data
-            // other
             for (int x = 0; x < iterations; ++x)
+            {
                 for (int y = 0; y < mDataIn.GetLength(0); ++y)
                 {
                     Feedforward(mDataIn[y]);
                     Sigma(y);
                     Backpropagation();
                 }
+            }
         }
 
         public void Sigma(int dataPosition)
         {
-            for (int y = 0; y < mLayer.Last().GetNeuronCount(); ++y)
+            for (int y = 0; y < _layers.Last().GetNeuronCount(); ++y)
             {
-                mLayer.Last().SetSigma(y, (mLayer.Last().GetSigmo(y)) * (1 - mLayer.Last().GetSigmo(y)) * (mDataOut[dataPosition].First()[y] - mLayer.Last().GetSigmo(y)));
-                mDataOut[dataPosition].Last()[y] = mLayer.Last().GetSigmo(y);
+                _layers.Last().SetSigma(y, (_layers.Last().GetSigmo(y)) * (1 - _layers.Last().GetSigmo(y)) * (mDataOut[dataPosition].First()[y] - _layers.Last().GetSigmo(y)));
+                mDataOut[dataPosition].Last()[y] = _layers.Last().GetSigmo(y);
             }
-            for (int x = (mLayer.GetLength(0) - 2); x > 0; --x)
+            for (int x = (_layers.GetLength(0) - 2); x > 0; --x)
             {
                 int i = 0;
                 for (int y = 0; y < x; ++y)
-                    i += mLayer[y].GetNeuronCount();
+                    i += _layers[y].GetNeuronCount();
 
-                for (int y = 0; y < mLayer[x].GetNeuronCount(); ++y)
+                for (int y = 0; y < _layers[x].GetNeuronCount(); ++y)
                 {
                     double j = 0;
-                    for (int z = 0; z < mLayer[x + 1].GetNeuronCount(); ++z)
-                        j += mLayer[x + 1].GetSigma(z) * mWeight[i + y][z];
-                    mLayer[x].SetSigma(y, mLayer[x].GetSigmo(y) * (1 - mLayer[x].GetSigmo(y)) * j);
+                    for (int z = 0; z < _layers[x + 1].GetNeuronCount(); ++z)
+                        j += _layers[x + 1].GetSigma(z) * mWeight[i + y][z];
+                    _layers[x].SetSigma(y, _layers[x].GetSigmo(y) * (1 - _layers[x].GetSigmo(y)) * j);
                 }
             }
 
@@ -322,16 +230,16 @@ namespace NeuralNetCS
         public void Feedforward(double[] dat)
         {
             ResetHL();
-            for (int x = 0; x < mLayer.First().GetNeuronCount(); ++x)
-                mLayer.First().SetActivationValue(x, dat[x]);
+            for (int x = 0; x < _layers.First().GetNeuronCount(); ++x)
+                _layers.First().SetActivationValue(x, dat[x]);
             int i = 0, j = 0;
-            for (int x = 1; x < mLayer.GetLength(0); ++x)
+            for (int x = 1; x < _layers.GetLength(0); ++x)
             {
-                for (int y = 0; y < mLayer[x].GetNeuronCount(); ++y)
+                for (int y = 0; y < _layers[x].GetNeuronCount(); ++y)
                 {
-                    for (int z = 0; z < mLayer[x - 1].GetNeuronCount(); ++z)
-                        mLayer[x].SetActivationValue(y, mLayer[x].GetActivationValue(y) + (mLayer[x - 1].GetSigmo(z) * mWeight[z + j][y]));
-                    mLayer[x].SetActivationValue(y, mLayer[x].GetActivationValue(y) - mBias[x - 1][y]);
+                    for (int z = 0; z < _layers[x - 1].GetNeuronCount(); ++z)
+                        _layers[x].SetActivationValue(y, _layers[x].GetActivationValue(y) + (_layers[x - 1].GetSigmo(z) * mWeight[z + j][y]));
+                    _layers[x].SetActivationValue(y, _layers[x].GetActivationValue(y) - mBias[x - 1][y]);
                     ++i;
                 }
                 j = i;
@@ -340,19 +248,19 @@ namespace NeuralNetCS
 
         public void Backpropagation()
         {
-            for (int atLayer = (mLayer.GetLength(0) - 1); atLayer > 0; --atLayer)
-                for (int atNeuron = 0; atNeuron < mLayer[atLayer].GetNeuronCount(); ++atNeuron)
-                    for (int x = 0; x < mLayer[atLayer - 1].GetNeuronCount(); ++x)
+            for (int atLayer = (_layers.GetLength(0) - 1); atLayer > 0; --atLayer)
+                for (int atNeuron = 0; atNeuron < _layers[atLayer].GetNeuronCount(); ++atNeuron)
+                    for (int x = 0; x < _layers[atLayer - 1].GetNeuronCount(); ++x)
                     {
                         int i = 0;
                         for (int y = 0; y < atLayer - 1; ++y)
-                            i += mLayer[y].GetNeuronCount();
-                        mDWeight[x + i][atNeuron] = (mRate * mLayer[atLayer - 1].GetSigmo(x) * mLayer[atLayer].GetSigma(atNeuron));
+                            i += _layers[y].GetNeuronCount();
+                        mDWeight[x + i][atNeuron] = (_learningRate * _layers[atLayer - 1].GetSigmo(x) * _layers[atLayer].GetSigma(atNeuron));
                     }
 
             for (int x = 0; x < mBias.Count(); ++x)
                 for (int y = 0; y < mBias[x].Count(); ++y)
-                    mDBias[x][y] = (mRate * -1 * mLayer[x + 1].GetSigma(y));
+                    mDBias[x][y] = (_learningRate * -1 * _layers[x + 1].GetSigma(y));
 
             for (int x = 0; x < mWeight.Count(); ++x)
                 for (int y = 0; y < mWeight[x].Count(); ++y)
@@ -361,6 +269,21 @@ namespace NeuralNetCS
             for (int x = 0; x < mBias.Count(); ++x)
                 for (int y = 0; y < mBias[x].Count(); ++y)
                     mBias[x][y] += mDBias[x][y];
+        }
+
+        public double GetLearningRate()
+        {
+            return _learningRate;
+        }
+
+        public double SetLearningRate(double value)
+        {
+            if(value <= 0)
+            {
+                throw new ArgumentOutOfRangeException("Learning rate need to be bigger than 0!");
+            }
+            _learningRate = value;
+            return _learningRate;
         }
     }
 }
