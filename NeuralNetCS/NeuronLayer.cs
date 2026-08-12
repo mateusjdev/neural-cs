@@ -51,7 +51,7 @@
             return vec;
         }
 
-        public void ResetActivation()
+        public void ResetPreActivation()
         {
             foreach (Neuron neuron in _neurons)
             {
