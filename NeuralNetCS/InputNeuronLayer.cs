@@ -4,9 +4,9 @@
     {
         public InputNeuronLayer(int nNeurons) : base(nNeurons) { }
 
-        public override double GetSigmo(int at)
+        public override double GetSigmoide(int at)
         {
-            return GetActivationValue(at);
+            return GetPreActivationValue(at);
         }
     }
 }

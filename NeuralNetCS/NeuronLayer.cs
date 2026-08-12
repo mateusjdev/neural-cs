@@ -13,14 +13,18 @@
             }
         }
 
-        public virtual double GetSigmo(int at)
+        public virtual double GetSigmoide(int at)
         {
             return _neurons[at].GetSigmoide();
         }
 
-        public double GetActivationValue(int at)
+        public double GetPreActivationValue(int at)
         {
-            return _neurons[at].GetActivationValue();
+            return _neurons[at].GetPreActivationValue();
+        }
+
+        public void SetPreActivationValue(int at, double value) {
+            _neurons[at].SetPreActivationValue(value);
         }
 
         public double GetSigma(int at)
@@ -28,19 +32,14 @@
             return _neurons[at].GetSigma();
         }
 
+        public void SetSigma(int at, double value) {
+            _neurons[at].SetSigma(value);
+        }
+
         public int GetNeuronCount()
         {
             return _neurons.Length;
-        }
-
-        public void SetActivationValue(int at, double value)
-        {
-            _neurons[at].SetActivationValue(value);
-        }
-        public void SetSigma(int at, double value)
-        {
-            _neurons[at].SetSigma(value);
-        }
+        }       
 
         public double[] GetOutput()
         {
@@ -56,7 +55,7 @@
         {
             foreach (Neuron neuron in _neurons)
             {
-                neuron.SetActivationValue(0);
+                neuron.SetPreActivationValue(0);
             }
         }
     }

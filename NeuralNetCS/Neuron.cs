@@ -1,19 +1,19 @@
 ﻿namespace NeuralNetCS {
     class Neuron {
-        private double _activationValue = 0d;
+        private double _preActivationBuffer = 0d;
         private double _sigma = 0d;
 
         public double GetSigmoide() {
-            return MathUtils.Sigmoide(_activationValue);
+            return MathUtils.Sigmoide(_preActivationBuffer);
         }
 
-        public double GetActivationValue() {
-            return _activationValue;
+        public double GetPreActivationValue() {
+            return _preActivationBuffer;
         }
 
-        public double SetActivationValue(double value) {
-            _activationValue = value;
-            return _activationValue;
+        public double SetPreActivationValue(double value) {
+            _preActivationBuffer = value;
+            return _preActivationBuffer;
         }
 
         public double GetSigma() {

@@ -207,8 +207,8 @@ namespace NeuralNetCS
         {
             for (int y = 0; y < _layers.Last().GetNeuronCount(); ++y)
             {
-                _layers.Last().SetSigma(y, (_layers.Last().GetSigmo(y)) * (1 - _layers.Last().GetSigmo(y)) * (mDataOut[dataPosition].First()[y] - _layers.Last().GetSigmo(y)));
-                mDataOut[dataPosition].Last()[y] = _layers.Last().GetSigmo(y);
+                _layers.Last().SetSigma(y, (_layers.Last().GetSigmoide(y)) * (1 - _layers.Last().GetSigmoide(y)) * (mDataOut[dataPosition].First()[y] - _layers.Last().GetSigmoide(y)));
+                mDataOut[dataPosition].Last()[y] = _layers.Last().GetSigmoide(y);
             }
             for (int x = (_layers.GetLength(0) - 2); x > 0; --x)
             {
@@ -221,7 +221,7 @@ namespace NeuralNetCS
                     double j = 0;
                     for (int z = 0; z < _layers[x + 1].GetNeuronCount(); ++z)
                         j += _layers[x + 1].GetSigma(z) * mWeight[i + y][z];
-                    _layers[x].SetSigma(y, _layers[x].GetSigmo(y) * (1 - _layers[x].GetSigmo(y)) * j);
+                    _layers[x].SetSigma(y, _layers[x].GetSigmoide(y) * (1 - _layers[x].GetSigmoide(y)) * j);
                 }
             }
 
@@ -231,15 +231,15 @@ namespace NeuralNetCS
         {
             ResetHL();
             for (int x = 0; x < _layers.First().GetNeuronCount(); ++x)
-                _layers.First().SetActivationValue(x, dat[x]);
+                _layers.First().SetPreActivationValue(x, dat[x]);
             int i = 0, j = 0;
             for (int x = 1; x < _layers.GetLength(0); ++x)
             {
                 for (int y = 0; y < _layers[x].GetNeuronCount(); ++y)
                 {
                     for (int z = 0; z < _layers[x - 1].GetNeuronCount(); ++z)
-                        _layers[x].SetActivationValue(y, _layers[x].GetActivationValue(y) + (_layers[x - 1].GetSigmo(z) * mWeight[z + j][y]));
-                    _layers[x].SetActivationValue(y, _layers[x].GetActivationValue(y) - mBias[x - 1][y]);
+                        _layers[x].SetPreActivationValue(y, _layers[x].GetPreActivationValue(y) + (_layers[x - 1].GetSigmoide(z) * mWeight[z + j][y]));
+                    _layers[x].SetPreActivationValue(y, _layers[x].GetPreActivationValue(y) - mBias[x - 1][y]);
                     ++i;
                 }
                 j = i;
@@ -255,7 +255,7 @@ namespace NeuralNetCS
                         int i = 0;
                         for (int y = 0; y < atLayer - 1; ++y)
                             i += _layers[y].GetNeuronCount();
-                        mDWeight[x + i][atNeuron] = (_learningRate * _layers[atLayer - 1].GetSigmo(x) * _layers[atLayer].GetSigma(atNeuron));
+                        mDWeight[x + i][atNeuron] = (_learningRate * _layers[atLayer - 1].GetSigmoide(x) * _layers[atLayer].GetSigma(atNeuron));
                     }
 
             for (int x = 0; x < mBias.Count(); ++x)
