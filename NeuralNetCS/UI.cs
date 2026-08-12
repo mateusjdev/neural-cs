@@ -89,7 +89,7 @@ namespace NeuralNetCS {
         }
 
         public static void AperteQualquerTecla() {
-            Console.WriteLine("\n# Aperte qualquer tecla para continuar...");
+            Console.WriteLine("# Aperte qualquer tecla para continuar...");
             Console.ReadKey();
         }
     }

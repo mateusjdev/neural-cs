@@ -11,6 +11,7 @@ namespace NeuralNetCS {
         InicializarCustom,
         InicializarLogicGate,
         Treinar,
+        ImprimirInformacoes,
         Sair
     }
 
@@ -20,15 +21,17 @@ namespace NeuralNetCS {
 
         public static OpcoesMenu Menu() {
             string[] opcoes = new string[] {
-                "Inicializar Rede com parametros.",
-                "Inicializar Rede com gates lógicos.",
-                "Inicializar Treino.",
-                "Sair."
+                "Inicializar Rede com parametros",
+                "Inicializar Rede com gates lógicos",
+                "Inicializar Treino",
+                "Imprimir Informações",
+                "Sair"
             };
             OpcoesMenu[] valores = new OpcoesMenu[] {
                 OpcoesMenu.InicializarCustom,
                 OpcoesMenu.InicializarLogicGate,
                 OpcoesMenu.Treinar,
+                OpcoesMenu.ImprimirInformacoes,
                 OpcoesMenu.Sair
             };
             return UI.MostrarMenu(opcoes, valores);
@@ -47,51 +50,12 @@ namespace NeuralNetCS {
             contador.Stop();
             Console.WriteLine("# Sucesso ao treinar!...");
             Console.WriteLine($"# Tempo decorrido: {contador.Elapsed.TotalSeconds}s");
-            PrintResult();
         }
 
-        public static void PrintResult() {
-            MatrixData tmp = _network.GetAllData();
-            Console.WriteLine("########## Pesos (Weight) ##########");
-            for (int x = 0; x < tmp.Weight.Count(); ++x) {
-                for (int y = 0; y < tmp.Weight[x].Count(); ++y) {
-                    Console.Write("[" + x + "," + y + "] " + Math.Round(tmp.Weight[x][y], 6) + "\t");
-                }
-                Console.WriteLine();
-            }
-
-            Console.WriteLine("########## Bias ##########");
-            for (int x = 0; x < tmp.Bias.Count(); ++x) {
-                for (int y = 0; y < tmp.Bias[x].Count(); ++y) {
-                    Console.Write("[" + x + "," + y + "] " + Math.Round(tmp.Bias[x][y], 6) + "\t");
-                }
-                Console.WriteLine();
-            }
-
-            Console.WriteLine("########## Experado ##########");
-            for (int x = 0; x < tmp.InData.GetLength(0); ++x) {
-                for (int y = 0; y < tmp.nOutput; ++y) {
-                    Console.Write($"EXPER({x}):\t{Math.Round(tmp.OutData[x].First()[y], 6)}\t");
-                }
-                Console.WriteLine();
-                for (int y = 0; y < tmp.nOutput; ++y) {
-                    Console.Write($"ERRO({x}):\t{Math.Round(tmp.OutData[x].First()[y] - tmp.OutData[x].Last()[y], 6)}\t");
-                }
-                Console.WriteLine();
-            }
-
-            Console.WriteLine("########## Erro ##########");
-            double tot = 0.0;
-            int n = 0;
-            for (int x = 0; x < tmp.InData.GetLength(0); ++x) {
-                for (int y = 0; y < tmp.nOutput; ++y) {
-                    tot += Math.Abs(tmp.OutData[x].First()[y] - tmp.OutData[x].Last()[y]);
-                    ++n;
-                }
-            }
-
-            Console.WriteLine($"Total:\t\t{Math.Round(tot, 6)}");
-            Console.WriteLine($"Porcentagem:\t{Math.Round((100 * tot) / n, 6)}");
+        public static void ImprimirInformacoes()
+        {
+            UI.LimparTela();
+            Console.WriteLine(_network.ToString());
         }
 
         /*
@@ -158,6 +122,11 @@ namespace NeuralNetCS {
                         break;
                     case OpcoesMenu.Treinar:
                         Treinar();
+                        UI.AperteQualquerTecla();
+                        UI.LimparTela();
+                        break;
+                    case OpcoesMenu.ImprimirInformacoes:
+                        ImprimirInformacoes();
                         UI.AperteQualquerTecla();
                         UI.LimparTela();
                         break;
