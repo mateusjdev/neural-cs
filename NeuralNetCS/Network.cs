@@ -12,7 +12,7 @@ namespace NeuralNetCS {
         public double[][][] OutData;
     };
 
-    class Matrix {
+    class Network {
         private readonly LinkedList<double[]> _trainingDataInput;
         private readonly LinkedList<double[]> _trainingDataExpOutput;
         private readonly double[] _lastTrainingOutput;
@@ -26,7 +26,7 @@ namespace NeuralNetCS {
 
         private double _learningRate;
 
-        public Matrix(int nInput, int nHLayers, int nNperHLayers, int nOutput, double rate = 0.1) {
+        public Network(int nInput, int nHLayers, int nNperHLayers, int nOutput, double rate = 0.1) {
             _layers = new NeuronMatrix(nInput, nHLayers, nNperHLayers, nOutput);
             _learningRate = rate;
             _bias = new double[_layers.Count() - 1][];
@@ -190,8 +190,8 @@ namespace NeuralNetCS {
             return _learningRate;
         }
 
-        public static Matrix FromLogicGates(double ff, double ft, double tf, double tt) {
-            Matrix m = new Matrix(2, 1, 2, 1, 0.05);
+        public static Network FromLogicGates(double ff, double ft, double tf, double tt) {
+            Network m = new Network(2, 1, 2, 1, 0.05);
             m.AddTrainingData(new double[] { 0, 0 }, new double[] { ff });
             m.AddTrainingData(new double[] { 0, 1 }, new double[] { ft });
             m.AddTrainingData(new double[] { 1, 0 }, new double[] { tf });

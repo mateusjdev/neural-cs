@@ -19,12 +19,12 @@ namespace NeuralNetCS {
             return opcoes[0];
         }
 
-        public static int PerguntarInt(int min = int.MinValue, int max = int.MaxValue) {
+        public static int PerguntarInt(string pergunta, int min = int.MinValue, int max = int.MaxValue) {
             int resposta = 0;
             bool rangeOk = false;
             do {
                 try {
-                    Console.WriteLine("Digite o valor (int): ");
+                    Console.WriteLine(pergunta);
                     resposta = int.Parse(Console.ReadLine());
                     if (resposta >= min && resposta <= max) {
                         rangeOk = true;
@@ -43,12 +43,12 @@ namespace NeuralNetCS {
             return resposta;
         }
 
-        public static double PerguntarDouble(double min = double.MinValue, double max = double.MaxValue) {
+        public static double PerguntarDouble(string pergunta, double min = double.MinValue, double max = double.MaxValue) {
             double resposta = 0;
             bool rangeOk = false;
             do {
                 try {
-                    Console.WriteLine("Digite o valor (int): ");
+                    Console.WriteLine(pergunta);
                     resposta = double.Parse(Console.ReadLine());
                     if (resposta >= min && resposta <= max) {
                         rangeOk = true;

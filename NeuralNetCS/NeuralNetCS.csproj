@@ -49,7 +49,7 @@
     <Compile Include="NeuronMatrix.cs" />
     <Compile Include="NeuronLayer.cs" />
     <Compile Include="MathUtils.cs" />
-    <Compile Include="Matrix.cs" />
+    <Compile Include="Network.cs" />
     <Compile Include="Neuron.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
