@@ -1,9 +1,11 @@
 ﻿namespace NeuralNetCS {
     internal class NeuronLayer {
         private readonly Neuron[] _neurons;
+        private readonly int count;
 
         public NeuronLayer(int nNeurons, EActivationFunction function) {
             _neurons = new Neuron[nNeurons];
+            count = nNeurons;
             switch (function) {
                 case EActivationFunction.Linear:
                     for (int x = 0; x < nNeurons; ++x) {
@@ -35,20 +37,20 @@
         }
 
         public int GetNeuronCount() {
-            return _neurons.Length;
+            return count;
         }
 
         public double[] GetOutput() {
-            double[] vec = new double[_neurons.Length];
-            for (int x = 0; x < _neurons.Length; ++x) {
-                vec[x] = GetActivationValue(x);
+            double[] vec = new double[count];
+            for (int x = 0; x < count; ++x) {
+                vec[x] = _neurons[x].GetActivationValue();
             }
             return vec;
         }
 
         public void ResetPreActivation() {
-            foreach (Neuron neuron in _neurons) {
-                neuron.SetPreActivationValue(0);
+            for (int i = 0; i < count; i++) {
+                _neurons[i].SetPreActivationValue(0);
             }
         }
     }
