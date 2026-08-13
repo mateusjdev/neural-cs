@@ -62,7 +62,8 @@ namespace NeuralNetCS {
                 int quantidade = Math.Min(EpochMaxSize, iteracoes);
                 _network.LearnFor(quantidade);
                 iteracoes -= quantidade;
-                Console.WriteLine($"Epoch({total - iteracoes}/{total}): {_network.DeltaMedio()}");
+                _network.DeltaMedio(out double media, out double menorErro, out double maiorErro);
+                Console.WriteLine($"Epoch({total - iteracoes}/{total}) - media: {media} - menor erro: {menorErro} - maior erro: {maiorErro}");
             }
             contador.Stop();
             Console.WriteLine("# Treino finalizado!...");

@@ -41,19 +41,27 @@ namespace NeuralNetCS {
             return _layers.Output().GetOutput();
         }
 
-        public double DeltaMedio() {
-            double media = 0d;
+        public void DeltaMedio(out double media, out double menorErro, out double maiorErro) {
+            media = 0d;
+            maiorErro = double.MinValue;
+            menorErro = double.MaxValue;
             int quant = 0;
             for (int i = 0; i < _trainingDataInput.Count; i++) {
                 Feedforward(_trainingDataInput.ElementAt(i));
                 NeuronLayer outputLayer = _layers.Output();
                 for (int j = 0; j < outputLayer.GetNeuronCount(); j++) {
-                    media += outputLayer.GetDelta(j);
+                    double valor = Math.Abs(outputLayer.GetDelta(j));
+                    media += valor;
+                    if (valor < menorErro) {
+                        menorErro = valor;
+                    }
+                    if (valor > maiorErro) {
+                        maiorErro = valor;
+                    }
                 }
                 quant += outputLayer.GetNeuronCount();
             }
             media /= quant;
-            return Math.Abs(media);
         }
 
         public void AddTrainingData(double[] input, double[] expectedOutput) {
@@ -217,8 +225,8 @@ namespace NeuralNetCS {
             stringBuilder.AppendLine("########## Pesos (Weight) ##########");
             for (int backwardLayer = 0; backwardLayer < _weight.Count(); backwardLayer++) {
                 stringBuilder.AppendLine($"Weight between layers {backwardLayer} and {backwardLayer + 1}");
-                for (int iNeuron = 0; iNeuron < _weight[backwardLayer].GetLength(0); iNeuron++) {
-                    for (int jNeuron = 0; jNeuron < _weight[backwardLayer].GetLength(1); jNeuron++) {
+                for (int iNeuron = 0; iNeuron < _weight[backwardLayer].Length; iNeuron++) {
+                    for (int jNeuron = 0; jNeuron < _weight[backwardLayer][iNeuron].Length; jNeuron++) {
                         stringBuilder.AppendLine($"W[{iNeuron},{jNeuron}]: {Math.Round(_weight[backwardLayer][iNeuron][jNeuron], 6)}");
                     }
                 }
