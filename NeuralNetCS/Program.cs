@@ -16,6 +16,7 @@ namespace NeuralNetCS
         Treinar,
         ImprimirInformacoes,
         Testar,
+        TestarClassificacao,
         Sair
     }
 
@@ -35,6 +36,7 @@ namespace NeuralNetCS
                 "Inicializar Treino",
                 "Imprimir Informações",
                 "Testar",
+                "Testar com Classificaçao",
                 "Sair"
             };
             OpcoesMenu[] valores = new OpcoesMenu[] {
@@ -44,6 +46,7 @@ namespace NeuralNetCS
                 OpcoesMenu.Treinar,
                 OpcoesMenu.ImprimirInformacoes,
                 OpcoesMenu.Testar,
+                OpcoesMenu.TestarClassificacao,
                 OpcoesMenu.Sair
             };
             return UI.MostrarMenu(opcoes, valores);
@@ -69,7 +72,7 @@ namespace NeuralNetCS
                 Console.WriteLine($"Epoch({total-iteracoes}/{total}): {_network.DeltaMedio()}");
             }
             contador.Stop();
-            Console.WriteLine("# Sucesso ao treinar!...");
+            Console.WriteLine("# Treino finalizado!...");
             Console.WriteLine($"# Tempo decorrido: {contador.Elapsed.TotalSeconds}s");
         }
 
@@ -97,6 +100,26 @@ namespace NeuralNetCS
             for (int i = 0; i < saida.Length; i++)
             {
                 Console.WriteLine($"i[{i}]: {saida[i]}");
+            }
+        }
+
+        public static void TestarClassificacao() {
+            // obter quantidade de entradas
+            int quantidadeEntradas = _network.GetInputSize();
+            // ler entradas
+            int index = 0;
+            double[] entradas = new double[quantidadeEntradas];
+            for (int i = 0; i < entradas.Length; i++) {
+                entradas[i] = UI.PerguntarDouble($"Digite o {index}º valor de entrada (double): ");
+            }
+            // executar rede
+            double[] saida = _network.Calculate(entradas);
+            // imprimir saidas
+            Console.WriteLine("##### Saida #####");
+            Console.WriteLine("Threshold: 0.1");
+            double threshold = 0.1;
+            for (int i = 0; i < saida.Length; i++) {
+                Console.WriteLine($"i[{i}]: {saida[i] > threshold}");
             }
         }
 
@@ -201,6 +224,11 @@ namespace NeuralNetCS
                         break;
                     case OpcoesMenu.Testar:
                         Testar();
+                        UI.AperteQualquerTecla();
+                        UI.LimparTela();
+                        break;
+                    case OpcoesMenu.TestarClassificacao:
+                        TestarClassificacao();
                         UI.AperteQualquerTecla();
                         UI.LimparTela();
                         break;
