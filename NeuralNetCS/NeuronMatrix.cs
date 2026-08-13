@@ -1,44 +1,45 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Emit;
 
 namespace NeuralNetCS {
     internal class NeuronMatrix {
-        private readonly List<NeuronLayer> _layers;
+        private readonly NeuronLayer[] _layers;
+        private readonly int count;
 
         public NeuronMatrix(
             int nInputNeurons,
             int nHiddenLayers,
             int nNeuronsPerHiddenLayer,
             int nOutputNeurons) {
-            int totalLayers = nHiddenLayers + 2;
-            _layers = new List<NeuronLayer>(totalLayers) {
-                new NeuronLayer(nInputNeurons, EActivationFunction.Linear)
-            };
-            for (int x = 0; x < nHiddenLayers; x++) { 
-                _layers.Add(new NeuronLayer(nNeuronsPerHiddenLayer, EActivationFunction.Sigmoide));
+            count = nHiddenLayers + 2;
+            _layers = new NeuronLayer[count];
+            _layers[0] = new NeuronLayer(nInputNeurons, EActivationFunction.Linear);
+            for (int x = 1; x <= nHiddenLayers; x++) {
+                _layers[x] = new NeuronLayer(nNeuronsPerHiddenLayer, EActivationFunction.Sigmoide);
             }
-            _layers.Add(new NeuronLayer(nOutputNeurons, EActivationFunction.Sigmoide));            
+            _layers[count - 1] = new NeuronLayer(nOutputNeurons, EActivationFunction.Sigmoide);
         }
 
         public NeuronLayer Input() {
-            return _layers.First();
+            return _layers[0];
         }
 
         public NeuronLayer Output() {
-            return _layers.Last();
+            return _layers[count - 1];
         }
 
         public NeuronLayer At(int i) {
-            return _layers.ElementAt(i);
+            return _layers[i];
         }
 
         public int Count() {
-            return _layers.Count;
+            return count;
         }
 
         public void ResetPreActivation() {
-            foreach (NeuronLayer layer in _layers) {
-                layer.ResetPreActivation();
+            for (int i = 0; i < _layers.Length; i++) {
+                _layers[i].ResetPreActivation();
             }
         }
     }
