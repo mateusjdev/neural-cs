@@ -6,10 +6,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 
-namespace NeuralNetCS
-{
-    enum OpcoesMenu
-    {
+namespace NeuralNetCS {
+    enum OpcoesMenu {
         InicializarCustom,
         InicializarClassificadorDirecional,
         InicializarLogicGate,
@@ -20,15 +18,13 @@ namespace NeuralNetCS
         Sair
     }
 
-    class Program
-    {
+    class Program {
         private static bool _rodando = true;
         private static Network _network;
 
         private const int EpochMaxSize = 10000;
 
-        public static OpcoesMenu Menu()
-        {
+        public static OpcoesMenu Menu() {
             string[] opcoes = new string[] {
                 "Inicializar Rede com parametros",
                 "Inicializar Rede de classificação direcional",
@@ -52,10 +48,8 @@ namespace NeuralNetCS
             return UI.MostrarMenu(opcoes, valores);
         }
 
-        public static void Treinar()
-        {
-            if (_network == null)
-            {
+        public static void Treinar() {
+            if (_network == null) {
                 throw new InvalidOperationException("A rede não foi inicializada!");
             }
             int iteracoes = UI.PerguntarInt("Digite o número de iterações: ", 0);
@@ -64,41 +58,36 @@ namespace NeuralNetCS
             _network.SetLearningRate(taxaAprendizado);
             var contador = Stopwatch.StartNew();
             int total = iteracoes;
-            while (iteracoes > 0)
-            {
+            while (iteracoes > 0) {
                 int quantidade = Math.Min(EpochMaxSize, iteracoes);
                 _network.LearnFor(quantidade);
                 iteracoes -= quantidade;
-                Console.WriteLine($"Epoch({total-iteracoes}/{total}): {_network.DeltaMedio()}");
+                Console.WriteLine($"Epoch({total - iteracoes}/{total}): {_network.DeltaMedio()}");
             }
             contador.Stop();
             Console.WriteLine("# Treino finalizado!...");
             Console.WriteLine($"# Tempo decorrido: {contador.Elapsed.TotalSeconds}s");
         }
 
-        public static void ImprimirInformacoes()
-        {
+        public static void ImprimirInformacoes() {
             UI.LimparTela();
             Console.WriteLine(_network.ToString());
         }
 
-        public static void Testar()
-        {
+        public static void Testar() {
             // obter quantidade de entradas
             int quantidadeEntradas = _network.GetInputSize();
             // ler entradas
             int index = 0;
             double[] entradas = new double[quantidadeEntradas];
-            for (int i = 0; i < entradas.Length; i++)
-            {
+            for (int i = 0; i < entradas.Length; i++) {
                 entradas[i] = UI.PerguntarDouble($"Digite o {index}º valor de entrada (double): ");
             }
             // executar rede
             double[] saida = _network.Calculate(entradas);
             // imprimir saidas
             Console.WriteLine("##### Saida #####");
-            for (int i = 0; i < saida.Length; i++)
-            {
+            for (int i = 0; i < saida.Length; i++) {
                 Console.WriteLine($"i[{i}]: {saida[i]}");
             }
         }
@@ -168,13 +157,11 @@ namespace NeuralNetCS
        }
        */
 
-        public static void InicializarLogicGate()
-        {
+        public static void InicializarLogicGate() {
             _network = Network.FromLogicGates(0, 1, 1, 0);
         }
 
-        public static void InicializarClassificadorDirecional()
-        {
+        public static void InicializarClassificadorDirecional() {
             _network = new Network(4, 3, 4, 4);
             // Blank
             _network.AddTrainingData(new double[] { 0, 0, 0, 0 }, new double[] { 1, 0, 0, 0 });
@@ -191,13 +178,10 @@ namespace NeuralNetCS
 
         }
 
-        static void Main()
-        {
-            while (_rodando)
-            {
+        static void Main() {
+            while (_rodando) {
                 OpcoesMenu escolhido = Menu();
-                switch (escolhido)
-                {
+                switch (escolhido) {
                     case OpcoesMenu.InicializarCustom:
                         UI.AperteQualquerTecla();
                         UI.LimparTela();

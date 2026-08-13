@@ -1,4 +1,6 @@
-﻿namespace NeuralNetCS {
+﻿using System.Collections.Specialized;
+
+namespace NeuralNetCS {
 
     abstract class Neuron {
         private double _preActivation = 0d;
