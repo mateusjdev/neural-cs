@@ -7,7 +7,7 @@
             switch (function) {
                 case EActivationFunction.Linear:
                     for (int x = 0; x < nNeurons; ++x) {
-                        _neurons[x] = new NeuronSigmoide();
+                        _neurons[x] = new NeuronLinear();
                     }
                     break;
                 case EActivationFunction.Sigmoide:

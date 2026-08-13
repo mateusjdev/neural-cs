@@ -59,7 +59,7 @@ namespace NeuralNetCS
                 quant += outputLayer.GetNeuronCount();
             }
             media /= quant;
-            return media;
+            return Math.Abs(media);
         }
 
         public void AddTrainingData(double[] input, double[] expectedOutput)
@@ -92,7 +92,7 @@ namespace NeuralNetCS
                 {
                     for (int jNeuron = 0; jNeuron < jLayerSize; ++jNeuron)
                     {
-                        _weight[backwardLayer][iNeuron, jNeuron] = (random.NextDouble() * 2 - 1) * limit;
+                        _weight[backwardLayer][iNeuron, jNeuron] = (random.NextDouble() * 2.0 - 1.0) * limit;
                     }
                 }
             }
