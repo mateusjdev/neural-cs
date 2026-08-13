@@ -5,15 +5,19 @@ namespace NeuralNetCS {
     internal class NeuronMatrix {
         private readonly List<NeuronLayer> _layers;
 
-        public NeuronMatrix(int nInput, int nHLayers, int nNperHLayers, int nOutput) {
-            int totalLayers = nHLayers + 2;
+        public NeuronMatrix(
+            int nInputNeurons,
+            int nHiddenLayers,
+            int nNeuronsPerHiddenLayer,
+            int nOutputNeurons) {
+            int totalLayers = nHiddenLayers + 2;
             _layers = new List<NeuronLayer>(totalLayers) {
-                new NeuronLayer(nInput, EActivationFunction.Linear)
+                new NeuronLayer(nInputNeurons, EActivationFunction.Linear)
             };
-            for (int x = 1; x - 1 < nHLayers; ++x) { 
-                _layers.Add(new NeuronLayer(nNperHLayers, EActivationFunction.Sigmoide));
+            for (int x = 0; x < nHiddenLayers; x++) { 
+                _layers.Add(new NeuronLayer(nNeuronsPerHiddenLayer, EActivationFunction.Sigmoide));
             }
-            _layers.Add(new NeuronLayer(nOutput, EActivationFunction.Sigmoide));            
+            _layers.Add(new NeuronLayer(nOutputNeurons, EActivationFunction.Sigmoide));            
         }
 
         public NeuronLayer Input() {

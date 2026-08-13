@@ -24,6 +24,8 @@ namespace NeuralNetCS
         private static bool _rodando = true;
         private static Network _network;
 
+        private const int EpochMaxSize = 10000;
+
         public static OpcoesMenu Menu()
         {
             string[] opcoes = new string[] {
@@ -58,7 +60,14 @@ namespace NeuralNetCS
             Console.WriteLine("Treinando...");
             _network.SetLearningRate(taxaAprendizado);
             var contador = Stopwatch.StartNew();
-            _network.LearnFor(iteracoes);
+            int total = iteracoes;
+            while (iteracoes > 0)
+            {
+                int quantidade = Math.Min(EpochMaxSize, iteracoes);
+                _network.LearnFor(quantidade);
+                iteracoes -= quantidade;
+                Console.WriteLine($"Epoch({total-iteracoes}/{total}): {_network.DeltaMedio()}");
+            }
             contador.Stop();
             Console.WriteLine("# Sucesso ao treinar!...");
             Console.WriteLine($"# Tempo decorrido: {contador.Elapsed.TotalSeconds}s");

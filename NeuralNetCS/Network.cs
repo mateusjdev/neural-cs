@@ -11,7 +11,8 @@ namespace NeuralNetCS
         private readonly LinkedList<double[]> _trainingDataExpOutput;
         private readonly double[] _lastTrainingOutput;
 
-        private const double InitialBias = 0.01d;
+        private const double InitialBias = 0d;
+        private const double DefaultLearningRate = 0.1d;
 
         private readonly NeuronMatrix _layers;
 
@@ -20,15 +21,20 @@ namespace NeuralNetCS
 
         private double _learningRate;
 
-        public Network(int nInput, int nHLayers, int nNperHLayers, int nOutput, double rate = 0.1)
+        public Network(
+            int nInputNeurons,
+            int nHiddenLayers,
+            int nNeuronsPerHiddenLayer,
+            int nOutputNeurons,
+            double rate = DefaultLearningRate)
         {
-            _layers = new NeuronMatrix(nInput, nHLayers, nNperHLayers, nOutput);
+            _layers = new NeuronMatrix(nInputNeurons, nHiddenLayers, nNeuronsPerHiddenLayer, nOutputNeurons);
             _learningRate = rate;
             _bias = new double[_layers.Count() - 1][];
             _weight = new double[_layers.Count() - 1][,];
             _trainingDataInput = new LinkedList<double[]>();
             _trainingDataExpOutput = new LinkedList<double[]>();
-            _lastTrainingOutput = new double[nOutput];
+            _lastTrainingOutput = new double[nOutputNeurons];
             InitializeParameters();
         }
 
@@ -36,6 +42,24 @@ namespace NeuralNetCS
         {
             Feedforward(input);
             return _layers.Output().GetOutput();
+        }
+
+        public double DeltaMedio()
+        {
+            double media = 0d;
+            int quant = 0;
+            for (int i = 0; i < _trainingDataInput.Count; i++)
+            {
+                Feedforward(_trainingDataInput.ElementAt(i));
+                NeuronLayer outputLayer = _layers.Output();
+                for (int j = 0; j < outputLayer.GetNeuronCount(); j++)
+                {
+                    media += outputLayer.GetDelta(j);
+                }
+                quant += outputLayer.GetNeuronCount();
+            }
+            media /= quant;
+            return media;
         }
 
         public void AddTrainingData(double[] input, double[] expectedOutput)
@@ -87,7 +111,7 @@ namespace NeuralNetCS
 
         public void LearnFor(long iterations)
         {
-            for (long x = 0; x < iterations; ++x)
+            for (long x = 0; x < iterations; x++)
             {
                 for (int y = 0; y < _trainingDataInput.Count; y++)
                 {
@@ -105,7 +129,7 @@ namespace NeuralNetCS
             {
                 double activatedValue = outputLayer.GetActivationValue(neuron);
                 double sigmoideDerrivative = activatedValue * (1 - activatedValue);
-                double outputError = (expectedOutput[neuron] - activatedValue);
+                double outputError = expectedOutput[neuron] - activatedValue;
                 double delta = sigmoideDerrivative * outputError;
                 outputLayer.SetDelta(neuron, delta);
                 _lastTrainingOutput[neuron] = activatedValue;
@@ -129,30 +153,31 @@ namespace NeuralNetCS
             }
         }
 
-        public void Feedforward(double[] dat)
+        public void Feedforward(double[] entrada)
         {
             _layers.ResetPreActivation();
             // Set Input
             for (int x = 0; x < _layers.Input().GetNeuronCount(); x++)
-                _layers.Input().SetPreActivationValue(x, dat[x]);
-            // Feed Forward
-            int i = 0, j = 0;
-            for (int nLayer = 1; nLayer < _layers.Count(); nLayer++)
             {
-                for (int atNeuron = 0; atNeuron < _layers.At(nLayer).GetNeuronCount(); atNeuron++, i++)
+                _layers.Input().SetPreActivationValue(x, entrada[x]);
+            }
+            // Feed Forward
+            for (int forwardLayer = 1; forwardLayer < _layers.Count(); forwardLayer++)
+            {
+                for (int atNeuron = 0; atNeuron < _layers.At(forwardLayer).GetNeuronCount(); atNeuron++)
                 {
                     // Weighted Sum
-                    double adjustValue = 0d;
-                    int backwardLayer = nLayer - 1;
+                    double weightedSum = 0d;
+                    int backwardLayer = forwardLayer - 1;
                     for (int backNeuron = 0; backNeuron < _layers.At(backwardLayer).GetNeuronCount(); ++backNeuron)
                     {
-                        adjustValue += _layers.At(backwardLayer).GetActivationValue(backNeuron) * _weight[backwardLayer][backNeuron, atNeuron];
+                        weightedSum += _layers.At(backwardLayer).GetActivationValue(backNeuron) * _weight[backwardLayer][backNeuron, atNeuron];
                     }
                     // Bias
-                    adjustValue -= _bias[backwardLayer][atNeuron];
-                    _layers.At(nLayer).SetPreActivationValue(atNeuron, adjustValue);
+                    // TODO: Check values
+                    weightedSum += _bias[backwardLayer][atNeuron];
+                    _layers.At(forwardLayer).SetPreActivationValue(atNeuron, weightedSum);
                 }
-                j = i;
             }
         }
 
@@ -160,14 +185,14 @@ namespace NeuralNetCS
         {
             CalculateDelta(expectedOutput);
 
-            for (int atLayer = (_layers.Count() - 1); atLayer > 0; --atLayer)
+            for (int atLayer = (_layers.Count() - 1); atLayer > 0; atLayer--)
             {
                 int backwardLayer = atLayer - 1;
                 for (int atNeuron = 0; atNeuron < _layers.At(atLayer).GetNeuronCount(); ++atNeuron)
                 {
                     for (int backNeuron = 0; backNeuron < _layers.At(backwardLayer).GetNeuronCount(); ++backNeuron)
                     {
-                        _weight[backwardLayer][backNeuron, atNeuron] =
+                        _weight[backwardLayer][backNeuron, atNeuron] +=
                             _learningRate *
                             _layers.At(backwardLayer).GetActivationValue(backNeuron) *
                             _layers.At(atLayer).GetDelta(atNeuron);
@@ -175,11 +200,11 @@ namespace NeuralNetCS
                 }
             }
 
-            for (int x = 0; x < _bias.Count(); ++x)
+            for (int x = 0; x < _bias.Length; x++)
             {
-                for (int y = 0; y < _bias[x].Count(); ++y)
+                for (int y = 0; y < _bias[x].Length; y++)
                 {
-                    _bias[x][y] = (_learningRate * -1 * _layers.At(x + 1).GetDelta(y));
+                    _bias[x][y] += _learningRate * -1 * _layers.At(x + 1).GetDelta(y);
                 }
             }
         }
@@ -212,6 +237,7 @@ namespace NeuralNetCS
         public override string ToString()
         {
             StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.AppendLine($"Learning Rate: {_learningRate}");
             stringBuilder.AppendLine("########## Pesos (Weight) ##########");
             for (int backwardLayer = 0; backwardLayer < _weight.Count(); backwardLayer++)
             {
